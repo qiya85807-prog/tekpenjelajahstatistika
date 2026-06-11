@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatXplore — Cerita Animasi Interaktif</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+  CARA EDIT FILE INI DI VS CODE:
+  1. Warna utama → cari ":root{" di bawah, ubah nilai variabel
+  2. Data cerita  → cari "CONFIG SCENE" di bagian JavaScript
+  3. Teks narasi  → cari "TEKS_NARASI" dan edit langsung
+  4. Animasi latar → cari "ANIMASI LATAR" di JavaScript
+  5. Soal/refleksi → cari "TEKS_REFLEKSI" di JavaScript
+============================================================ -->
+
+<style>
+/* ===================================================
+   VARIABEL WARNA — ubah di sini untuk ganti tema
+   =================================================== */
+:root{
+  --bg:#060e1a;
+  --card:#0d1f35;
+  --card2:#122640;
+  --border:rgba(255,255,255,.07);
+  --teal:#00e5cc;
+  --orange:#ff8c42;
+  --yellow:#ffd166;
+  --blue:#4da6ff;
+  --green:#06d6a0;
+  --purple:#c77dff;
+  --pink:#ff6b9d;
+  --red:#ff4d6d;
+  --text:#dde8f5;
+  --muted:#3d5a7a;
+  --white:#f0f8ff;
+}
+
+/* ── RESET ── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Nunito Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── LAYER FIXED (canvas latar, partikel, konfeti) ── */
+#bgScene{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#particles{position:fixed;inset:0;z-index:99;pointer-events:none;}
+#confettiC{position:fixed;inset:0;z-index:100;pointer-events:none;}
+.star-fly{
+  position:fixed;font-size:22px;z-index:101;pointer-events:none;
+  animation:starFly 1.2s ease-out forwards;
+}
+@keyframes starFly{
+  0%{transform:translate(0,0) scale(1);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  background:rgba(6,14,26,.96);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  height:56px;
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+}
+.logo{
+  font-family:'Fredoka One',sans-serif;font-size:20px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.logo span{
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nlink{
+  padding:5px 10px;border-radius:8px;border:none;
+  background:none;color:var(--muted);font-size:11px;
+  font-weight:800;cursor:pointer;font-family:inherit;
+  transition:all .2s;text-decoration:none;
+}
+.nlink:hover{color:var(--teal);background:rgba(0,229,204,.08);}
+.nlink.here{color:var(--orange);background:rgba(255,140,66,.08);}
+/* Tombol petunjuk di nav */
+.btn-petunjuk{
+  padding:5px 13px;border-radius:8px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  color:white;border:none;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:all .25s;
+  box-shadow:0 2px 10px rgba(199,125,255,.3);
+}
+.btn-petunjuk:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(199,125,255,.4);}
+
+/* ── LAYOUT ── */
+.page{padding-top:56px;min-height:100vh;position:relative;z-index:1;}
+.pw-sm{max-width:680px;margin:0 auto;padding:18px 14px 70px;}
+.ph{margin-bottom:16px;}
+.ph h2{font-family:'Fredoka One',sans-serif;font-size:24px;color:var(--white);margin-bottom:3px;}
+.ph p{font-size:13px;color:var(--muted);}
+
+/* ── TABS SCENE ── */
+.scene-tabs{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:3px;}
+.scene-tabs::-webkit-scrollbar{height:0;}
+.stab{
+  padding:8px 15px;border-radius:12px;
+  border:1.5px solid var(--border);
+  background:var(--card);color:var(--muted);
+  font-weight:800;font-size:11px;cursor:pointer;
+  font-family:inherit;transition:all .22s;white-space:nowrap;
+}
+.stab.active{border-color:var(--orange);color:var(--orange);background:rgba(255,140,66,.09);}
+.stab:hover:not(.active){border-color:rgba(255,140,66,.3);color:rgba(255,140,66,.6);}
+
+/* ── KOTAK CANVAS ANIMASI ── */
+.anim-box{
+  border-radius:18px;overflow:hidden;
+  margin-bottom:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);
+  position:relative;
+  cursor:default;
+}
+.anim-box canvas{display:block;width:100%;height:auto;}
+/* Label "INTERAKTIF" di pojok */
+.anim-label{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,229,204,.15);border:1px solid rgba(0,229,204,.3);
+  color:var(--teal);padding:3px 9px;border-radius:100px;
+  font-size:9px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;pointer-events:none;
+  backdrop-filter:blur(6px);
+}
+
+/* ── NARASI KARAKTER ── */
+.narasi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:15px;margin-bottom:12px;
+  border-left:4px solid var(--c-nar,var(--orange));
+  position:relative;overflow:hidden;
+}
+.narasi::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(135deg,rgba(255,140,66,.03),transparent);
+  pointer-events:none;
+}
+.nchar{display:flex;align-items:flex-start;gap:12px;}
+.nava{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:21px;border:2px solid;
+  animation:avaPop .5s cubic-bezier(.34,1.56,.64,1);
+  background:var(--card2);
+}
+@keyframes avaPop{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1) rotate(0)}}
+.nname{font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.nmsg{font-size:13px;line-height:1.72;color:var(--text);}
+
+/* ── PANEL DATA ── */
+.dp{
+  background:var(--card);border:1.5px solid var(--c-dp,var(--teal));
+  border-radius:18px;padding:17px;margin-bottom:12px;
+  box-shadow:0 0 20px -8px var(--c-dp,var(--teal));
+}
+.dp-hdr{
+  font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:13px;color:var(--white);
+  margin-bottom:12px;display:flex;align-items:center;
+  gap:8px;flex-wrap:wrap;
+}
+.dp-badge{padding:2px 10px;border-radius:100px;font-size:11px;font-weight:800;color:var(--bg);}
+.balls-row{display:flex;flex-wrap:wrap;gap:8px;min-height:54px;margin-bottom:9px;align-items:center;}
+.dball{
+  width:50px;height:50px;border-radius:50%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .2s;
+  animation:ballIn .35s cubic-bezier(.34,1.56,.64,1);
+  position:relative;flex-shrink:0;
+  box-shadow:0 3px 10px rgba(0,0,0,.2);
+}
+@keyframes ballIn{from{transform:scale(0) rotate(-200deg);opacity:0}to{transform:scale(1);opacity:1}}
+.dball.dn{background:radial-gradient(circle at 35% 35%,var(--card2),#081525);border:2px solid rgba(0,229,204,.35);color:var(--teal);}
+.dball.dm{background:radial-gradient(circle at 35% 35%,rgba(77,166,255,.2),rgba(0,0,0,.3));border:2px solid rgba(77,166,255,.6);color:var(--blue);}
+.dball.de{background:radial-gradient(circle at 35% 35%,rgba(255,140,66,.25),rgba(0,0,0,.3));border:2px solid var(--orange);color:var(--orange);box-shadow:0 0 16px rgba(255,140,66,.35);animation:ballIn .35s cubic-bezier(.34,1.56,.64,1),deBounce .5s .35s ease;}
+@keyframes deBounce{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.dball:hover::after{content:'✕';position:absolute;inset:0;border-radius:50%;background:rgba(255,77,109,.3);display:flex;align-items:center;justify-content:center;font-size:15px;color:white;}
+.dball:hover{transform:scale(1.18);}
+.dball-v{font-size:12px;font-family:monospace;font-weight:800;line-height:1;}
+.dball-s{font-size:8px;opacity:.65;}
+.bc{font-size:11px;color:var(--muted);font-family:monospace;margin-bottom:10px;}
+
+/* ── KARTU STATISTIK ── */
+.sc3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px;}
+.sc{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;padding:13px 7px;text-align:center;
+  transition:all .4s;position:relative;overflow:hidden;
+}
+.sc .sglow{position:absolute;inset:0;opacity:0;transition:opacity .4s;pointer-events:none;}
+.sc.shot .sglow{opacity:1;}
+.sc.shot{border-color:var(--sc-c,var(--teal));box-shadow:0 0 20px -4px var(--sc-c,var(--teal));}
+.sc-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;}
+.sc-v{
+  font-family:'Fredoka One',sans-serif;font-size:24px;
+  min-height:30px;display:flex;align-items:center;
+  justify-content:center;transition:all .3s;
+}
+.sc-v.pop{animation:scPop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes scPop{0%,100%{transform:scale(1)}45%{transform:scale(1.32)}}
+.sc-d{font-size:10px;font-family:monospace;font-weight:800;min-height:13px;margin-top:2px;}
+
+/* ── EXT BOX ── */
+.ext-box{
+  background:rgba(255,140,66,.06);
+  border:1.5px dashed rgba(255,140,66,.35);
+  border-radius:13px;padding:13px;margin-bottom:10px;
+}
+.ext-lbl{font-size:11px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px;}
+.ext-hint{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.55;}
+.ext-row{display:flex;gap:7px;}
+.ext-row input{
+  flex:1;background:rgba(0,0,0,.4);
+  border:1.5px solid rgba(255,140,66,.4);
+  color:var(--white);padding:10px 13px;
+  border-radius:10px;font-size:16px;
+  font-family:inherit;outline:none;transition:all .2s;
+}
+.ext-row input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,66,.1);}
+.btn-ext{
+  background:linear-gradient(135deg,var(--orange),#d44e00);
+  color:white;border:none;padding:10px 15px;
+  border-radius:10px;font-size:20px;cursor:pointer;
+  box-shadow:0 3px 10px rgba(255,140,66,.35);
+  transition:all .22s;
+}
+.btn-ext:hover{transform:scale(1.1);box-shadow:0 5px 18px rgba(255,140,66,.5);}
+
+/* ── TOMBOL AKSI ── */
+.act-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px;}
+.abtn{
+  flex:1;min-width:120px;padding:10px;border-radius:11px;
+  border:1.5px solid;font-weight:800;font-size:12px;
+  cursor:pointer;font-family:inherit;transition:all .22s;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.abtn:active{transform:scale(.95);}
+.abtn-o{background:rgba(255,140,66,.1);border-color:rgba(255,140,66,.5);color:var(--orange);}
+.abtn-o:hover{background:rgba(255,140,66,.18);}
+.abtn-b{background:rgba(77,166,255,.09);border-color:rgba(77,166,255,.45);color:var(--blue);}
+.abtn-b:hover{background:rgba(77,166,255,.18);}
+.abtn-r{background:rgba(255,255,255,.04);border-color:var(--border);color:var(--muted);}
+.abtn-r:hover{color:var(--red);border-color:rgba(255,77,109,.4);}
+
+/* ── TABEL PERBANDINGAN ── */
+.cmp{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:16px;margin-bottom:12px;display:none;
+}
+.cmp.show{display:block;animation:pgIn .4s ease;}
+@keyframes pgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ctitle{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+  color:var(--white);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:12px;display:flex;align-items:center;gap:7px;
+}
+.cdot{width:7px;height:7px;border-radius:50%;background:var(--c-acc,var(--teal));box-shadow:0 0 6px var(--c-acc,var(--teal));}
+.ctbl{width:100%;border-collapse:collapse;font-size:12px;}
+.ctbl th{padding:7px 9px;background:rgba(0,0,0,.2);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;text-align:left;}
+.ctbl td{padding:9px 9px;border-top:1px solid var(--border);}
+.ctbl .crow td{background:rgba(255,140,66,.05);}
+.cbadge{display:inline-block;background:var(--orange);color:var(--bg);font-size:8px;font-weight:900;padding:2px 6px;border-radius:3px;margin-left:4px;}
+.cup{color:var(--orange);font-weight:800;}
+.cdn{color:var(--blue);font-weight:800;}
+
+/* ── REFLEKSI ── */
+.refl{
+  background:rgba(0,229,204,.05);border:1px solid rgba(0,229,204,.15);
+  border-radius:14px;padding:15px;margin-bottom:12px;display:none;
+}
+.refl.show{display:block;animation:pgIn .4s ease;}
+.refl-label{font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.refl-q{font-size:13px;color:#99f6e4;font-style:italic;line-height:1.72;margin-bottom:10px;}
+.refl-btn{
+  background:none;border:1px solid rgba(0,229,204,.3);color:var(--teal);
+  padding:6px 13px;border-radius:8px;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.refl-btn:hover{background:rgba(0,229,204,.1);}
+.refl-ans{
+  margin-top:10px;background:rgba(0,0,0,.22);border-radius:9px;
+  padding:12px;font-size:13px;color:#cbd5e1;line-height:1.8;display:none;
+}
+.refl-ans.show{display:block;animation:pgIn .3s ease;}
+
+/* ── KESIMPULAN ── */
+.konk{
+  background:linear-gradient(135deg,rgba(0,229,204,.08),rgba(255,140,66,.05));
+  border:1.5px solid rgba(0,229,204,.22);border-radius:16px;
+  padding:18px;margin-bottom:12px;display:none;
+}
+.konk.show{display:block;animation:pgIn .5s ease;}
+.konk h3{font-family:'Fredoka One',sans-serif;font-size:17px;color:var(--teal);margin-bottom:7px;}
+.konk p{font-size:13px;color:#cbd5e1;line-height:1.8;}
+.ks{display:inline-block;font-family:monospace;font-weight:800;padding:2px 8px;border-radius:5px;}
+
+/* ── TOMBOL LANJUT ── */
+.abtn-next{
+  width:100%;padding:14px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg);font-family:'Nunito',sans-serif;font-weight:900;
+  font-size:14px;cursor:pointer;
+  box-shadow:0 6px 22px rgba(0,229,204,.28);
+  transition:all .25s;margin-top:8px;text-decoration:none;
+  display:block;text-align:center;
+}
+.abtn-next:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,229,204,.4);}
+.abtn-next:active{transform:scale(.97);}
+
+/* ── KARTU GENERIK ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:16px;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c-acc,var(--teal)),transparent);opacity:.7;
+}
+.tip{
+  background:rgba(255,140,66,.08);border-left:3px solid var(--orange);
+  padding:10px 12px 10px 11px;border-radius:0 10px 10px 0;
+  margin:10px 0 0;font-size:13px;color:#fed7aa;line-height:1.6;
+}
+
+/* ================================================================
+   MODAL PETUNJUK PENGGUNAAN
+   ================================================================ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(3,8,20,.88);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+}
+.modal-overlay.open{
+  display:flex;animation:modalIn .25s ease;
+}
+@keyframes modalIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  background:var(--card);border:1px solid rgba(0,229,204,.2);
+  border-radius:22px;padding:0;width:100%;max-width:520px;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,.7);
+  animation:boxIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes boxIn{from{transform:scale(.88) translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.modal-box::-webkit-scrollbar{width:4px;}
+.modal-box::-webkit-scrollbar-thumb{background:rgba(0,229,204,.2);border-radius:2px;}
+
+/* Header modal */
+.modal-head{
+  padding:22px 22px 16px;
+  background:linear-gradient(135deg,rgba(0,229,204,.08),rgba(199,125,255,.06));
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  border-radius:22px 22px 0 0;
+}
+.modal-title{
+  font-family:'Fredoka One',sans-serif;font-size:20px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+  background:var(--card2);color:var(--muted);font-size:16px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.modal-close:hover{border-color:var(--red);color:var(--red);}
+
+/* Body modal */
+.modal-body{padding:22px;}
+.modal-intro{
+  font-size:13px;color:var(--muted);line-height:1.7;
+  margin-bottom:20px;padding:12px;
+  background:rgba(0,229,204,.04);border-radius:10px;
+  border:1px solid rgba(0,229,204,.1);
+}
+
+/* Langkah-langkah petunjuk */
+.steps-list{display:flex;flex-direction:column;gap:12px;margin-bottom:22px;}
+.step-item{
+  display:flex;align-items:flex-start;gap:13px;
+  padding:14px;background:var(--card2);border-radius:13px;
+  border:1px solid var(--border);transition:all .2s;
+}
+.step-item:hover{border-color:rgba(0,229,204,.2);}
+.step-num{
+  min-width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fredoka One',sans-serif;font-size:14px;color:var(--bg);
+  font-weight:900;
+}
+.step-content strong{display:block;font-size:13px;color:var(--white);margin-bottom:3px;}
+.step-content span{font-size:12px;color:var(--muted);line-height:1.6;}
+.step-content code{
+  font-family:monospace;font-size:11px;
+  background:rgba(0,229,204,.1);color:var(--teal);
+  padding:1px 6px;border-radius:4px;
+}
+
+/* Tombol fungsi */
+.btn-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
+.btn-ref{
+  padding:11px 13px;border-radius:11px;
+  border:1px solid var(--border);background:var(--card2);
+  text-align:left;
+}
+.br-icon{font-size:18px;margin-bottom:5px;}
+.br-name{font-size:11px;font-weight:800;color:var(--white);margin-bottom:2px;}
+.br-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+
+/* Tips singkat */
+.tips-row{display:flex;flex-direction:column;gap:7px;}
+.tip-item{
+  display:flex;align-items:center;gap:9px;
+  font-size:12px;color:var(--text);
+  padding:9px 12px;background:var(--card2);
+  border-radius:9px;border:1px solid var(--border);
+}
+.tip-item .ti{font-size:16px;flex-shrink:0;}
+
+/* Tombol mulai di modal */
+.btn-modal-start{
+  display:block;width:100%;margin-top:20px;
+  padding:14px;border-radius:13px;border:none;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg);font-family:'Nunito',sans-serif;
+  font-weight:900;font-size:15px;cursor:pointer;
+  box-shadow:0 6px 22px rgba(0,229,204,.28);
+  transition:all .25s;
+}
+.btn-modal-start:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,229,204,.4);}
+</style>
+</head>
+<body>
+
+<!-- ── Layer Canvas ── -->
+<canvas id="bgScene"></canvas>
+<canvas id="particles"></canvas>
+<canvas id="confettiC"></canvas>
+
+<!-- ================================================================
+     MODAL PETUNJUK PENGGUNAAN
+     Edit teks di dalam modal ini sesuka kamu
+     ================================================================ -->
+<div class="modal-overlay" id="modalPetunjuk">
+  <div class="modal-box">
+
+    <div class="modal-head">
+      <div class="modal-title">💡 Petunjuk Penggunaan</div>
+      <button class="modal-close" onclick="tutupPetunjuk()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Intro singkat — EDIT TEKS INI -->
+      <div class="modal-intro">
+        👋 Halo! Website ini berisi <strong style="color:var(--white)">3 cerita animasi interaktif</strong>
+        yang membantu kamu memahami Mean, Median & Modus dari kehidupan nyata.
+        Ikuti setiap langkah dan coba semua tombolnya!
+      </div>
+
+      <!-- Langkah-langkah — EDIT SETIAP LANGKAH DI SINI -->
+      <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">📋 Langkah Penggunaan</div>
+      <div class="steps-list">
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--orange),var(--yellow))">1</div>
+          <div class="step-content">
+            <strong>Pilih Cerita</strong>
+            <span>Klik tab di atas (<code>🍜 Warung</code>, <code>🏫 Kelas</code>, <code>🛒 Toko</code>) untuk berpindah cerita. Tiap cerita punya konteks berbeda.</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--teal),var(--blue))">2</div>
+          <div class="step-content">
+            <strong>Lihat Animasi Latar</strong>
+            <span>Latar belakang menampilkan <strong style="color:var(--white)">animasi hidup</strong> sesuai cerita: karakter berjalan, pasar ramai, kelas, hujan, dan lainnya. Animasi berjalan otomatis!</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--blue),var(--purple))">3</div>
+          <div class="step-content">
+            <strong>Amati Data & Statistik</strong>
+            <span>Bola-bola data menunjukkan nilai tiap hari/siswa. Perhatikan angka <strong style="color:var(--white)">Mean, Median, Modus</strong> yang dihitung otomatis.</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--purple),var(--pink))">4</div>
+          <div class="step-content">
+            <strong>Tambah Nilai Ekstrem</strong>
+            <span>Klik <code>⚡ Tambah Hari Spesial</code> atau <code>🤒 Tambah Nilai Doni</code>, lalu ketik angka ekstrem dan tekan Enter. Perhatikan bagaimana statistik berubah!</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--green),var(--teal))">5</div>
+          <div class="step-content">
+            <strong>Hapus Bola Data</strong>
+            <span>Klik bola mana saja untuk menghapus data tersebut. Statistik akan langsung diperbarui.</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--yellow),var(--orange))">6</div>
+          <div class="step-content">
+            <strong>Baca Refleksi & Kesimpulan</strong>
+            <span>Setelah menambah data ekstrem, baca pertanyaan reflektif dan klik <code>💡 Lihat Penjelasan</code> untuk memahami kenapa mean paling terpengaruh.</span>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--red),var(--pink))">7</div>
+          <div class="step-content">
+            <strong>Lanjut ke Cerita Berikutnya</strong>
+            <span>Setelah dapat kesimpulan, tombol <code>→ Lanjut</code> muncul. Klik untuk ke cerita berikutnya!</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Fungsi tombol — EDIT NAMA DAN DESKRIPSI SESUAI KEBUTUHAN -->
+      <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🎮 Fungsi Tombol</div>
+      <div class="btn-ref-grid">
+        <div class="btn-ref">
+          <div class="br-icon">⚡</div>
+          <div class="br-name">Tambah Hari Spesial</div>
+          <div class="br-desc">Masukkan penjualan hari festival — amati Mean melonjak!</div>
+        </div>
+        <div class="btn-ref">
+          <div class="br-icon">🤒</div>
+          <div class="br-name">Tambah Nilai Doni</div>
+          <div class="br-desc">Masukkan nilai rendah siswa sakit — lihat dampak ke Mean.</div>
+        </div>
+        <div class="btn-ref">
+          <div class="br-icon">🔄</div>
+          <div class="br-name">Reset</div>
+          <div class="br-desc">Kembalikan semua data ke kondisi awal cerita.</div>
+        </div>
+        <div class="btn-ref">
+          <div class="br-icon">💡</div>
+          <div class="br-name">Lihat Penjelasan</div>
+          <div class="br-desc">Buka jawaban dari pertanyaan reflektif.</div>
+        </div>
+      </div>
+
+      <!-- Tips singkat — TAMBAH/KURANGI SESUAI KEBUTUHAN -->
+      <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">💫 Tips</div>
+      <div class="tips-row">
+        <div class="tip-item"><span class="ti">🖱️</span><span>Hover bola data untuk lihat tombol hapus (✕)</span></div>
+        <div class="tip-item"><span class="ti">⌨️</span><span>Tekan <strong>Enter</strong> setelah mengetik angka untuk submit lebih cepat</span></div>
+        <div class="tip-item"><span class="ti">🎬</span><span>Animasi latar berjalan otomatis — ada 5 jenis animasi berbeda per scene!</span></div>
+        <div class="tip-item"><span class="ti">📱</span><span>Website ini responsif — nyaman dipakai di HP maupun laptop</span></div>
+        <div class="tip-item"><span class="ti">💾</span><span>Progress tidak tersimpan — klik Reset untuk mulai ulang kapan saja</span></div>
+      </div>
+
+      <button class="btn-modal-start" onclick="tutupPetunjuk()">
+        🚀 Mulai Belajar Sekarang!
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="logo">Stat<span>Xplore</span></div>
+  <div class="nav-links">
+    <button class="btn-petunjuk" onclick="bukaPetunjuk()">💡 Petunjuk</button>
+    <a class="nlink" href="#">🏠</a>
+    <a class="nlink here" href="#">📖 Cerita</a>
+    <a class="nlink" href="#">📚 Materi</a>
+    <a class="nlink" href="#">🔬 Sim</a>
+    <a class="nlink" href="#">🎮 Main</a>
+  </div>
+</nav>
+
+
+<!-- ── KONTEN UTAMA ── -->
+<div class="page">
+  <div class="pw-sm">
+    <div class="ph">
+      <h2>📖 Cerita Animasi Interaktif</h2>
+      <p>Budi belajar statistika dari 3 kisah nyata — dengan animasi latar yang hidup!</p>
+    </div>
+
+    <!-- Tab scene -->
+    <div class="scene-tabs">
+      <button class="stab active" id="stab0" onclick="switchScene(0)">🍜 Warung Bu Sari</button>
+      <button class="stab" id="stab1" onclick="switchScene(1)">🏫 Kelas 8B</button>
+      <button class="stab" id="stab2" onclick="switchScene(2)">🛒 Toko Pak Andi</button>
+      <button class="stab" id="stab3" onclick="switchScene(3)">🌧️ Curah Hujan</button>
+      <button class="stab" id="stab4" onclick="switchScene(4)">🚦 Lalu Lintas</button>
+    </div>
+
+
+    <!-- ============================================================
+         SCENE 0: WARUNG BU SARI
+         EDIT TEKS NARASI DI .nmsg BAWAH
+         ============================================================ -->
+    <div id="scene0">
+      <div class="anim-box" id="canvasBox0">
+        <canvas id="cvs0" width="680" height="280"></canvas>
+        <div class="anim-label">✦ Animasi Aktif</div>
+      </div>
+
+      <!-- TEKS_NARASI — edit di sini -->
+      <div class="narasi" style="--c-nar:var(--orange)">
+        <div class="nchar">
+          <div class="nava" style="background:rgba(255,140,66,.1);border-color:var(--orange)">👩‍🍳</div>
+          <div>
+            <div class="nname" style="color:var(--orange)">Bu Sari — Pemilik Warung Mie</div>
+            <div class="nmsg">"Budi! Tolong bantu Bu Sari hitung rata-rata penjualan mie minggu ini. Besok ada <strong>Festival Kuliner Kota</strong> — penjualan bisa meledak! Coba tambahkan dan lihat apa yang terjadi pada Mean, Median, dan Modus!"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dp" style="--c-dp:var(--teal)">
+        <div class="dp-hdr">
+          🍜 Penjualan Mie Ayam (porsi/hari)
+          <span class="dp-badge" style="background:var(--teal)" id="w0cnt">7 hari</span>
+          <span style="font-size:11px;color:var(--muted)" id="w0hint">data normal</span>
+        </div>
+        <div class="balls-row" id="w0balls"></div>
+        <div class="bc">📌 Klik bola untuk hapus data · Data otomatis dihitung real-time</div>
+        <div class="sc3">
+          <div class="sc" style="--sc-c:var(--orange)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(255,140,66,.18),transparent 70%)"></div><div class="sc-lbl">📐 Mean</div><div class="sc-v" id="w0mean" style="color:var(--orange)">—</div><div class="sc-d" id="w0dmean"></div></div>
+          <div class="sc" style="--sc-c:var(--blue)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(77,166,255,.18),transparent 70%)"></div><div class="sc-lbl">📍 Median</div><div class="sc-v" id="w0med" style="color:var(--blue)">—</div><div class="sc-d" id="w0dmed"></div></div>
+          <div class="sc" style="--sc-c:var(--green)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(6,214,160,.18),transparent 70%)"></div><div class="sc-lbl">🔁 Modus</div><div class="sc-v" id="w0mod" style="color:var(--green)">—</div><div class="sc-d" id="w0dmod"></div></div>
+        </div>
+        <div class="ext-box" id="w0eb" style="display:none">
+          <!-- EDIT: teks label dan hint hari festival -->
+          <span class="ext-lbl">⚡ Hari Festival Kuliner Kota!</span>
+          <div class="ext-hint">Festival bisa mendatangkan ratusan pembeli! Coba masukkan angka besar seperti <strong>150</strong> atau <strong>200</strong> dan lihat betapa drastisnya Mean berubah dibanding Median.</div>
+          <div class="ext-row">
+            <input type="number" id="w0ei" placeholder="Jumlah porsi terjual…" onkeydown="if(event.key==='Enter')w0ae()">
+            <button class="btn-ext" onclick="w0ae()">⚡</button>
+          </div>
+        </div>
+        <div class="act-row">
+          <button class="abtn abtn-o" id="w0eb-btn" onclick="w0se()">⚡ Tambah Hari Festival</button>
+          <button class="abtn abtn-r" onclick="w0reset()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div class="cmp" id="w0cmp">
+        <div class="ctitle" style="--c-acc:var(--orange)"><div class="cdot"></div>📊 Perbandingan Sebelum & Sesudah Festival</div>
+        <table class="ctbl"><thead><tr><th>Ukuran</th><th>Sebelum Festival</th><th>Setelah Festival</th><th>Selisih</th></tr></thead><tbody id="w0ctbl"></tbody></table>
+      </div>
+
+      <!-- TEKS_REFLEKSI — edit pertanyaan dan jawaban di sini -->
+      <div class="refl" id="w0refl">
+        <div class="refl-label">💭 Pertanyaan Reflektif</div>
+        <div class="refl-q">"Kenapa Mean naik jauh lebih tinggi dari Median saat ada hari festival penjualan yang luar biasa?"</div>
+        <button class="refl-btn" onclick="toggleR('w0r')">💡 Lihat Penjelasan</button>
+        <div class="refl-ans" id="w0r">
+          <strong style="color:var(--teal)">Mean</strong> menjumlahkan <em>semua</em> nilai lalu dibagi — satu angka besar langsung menarik total naik drastis.<br><br>
+          <strong style="color:var(--blue)">Median</strong> hanya bergantung pada posisi nilai tengah setelah diurutkan — tidak peduli seberapa besar nilai di ujung, posisi tengah tidak banyak bergeser.<br><br>
+          <strong style="color:var(--white)">Kesimpulan:</strong> Untuk mengetahui penjualan "normal" Bu Sari, gunakan Median karena lebih tahan terhadap hari-hari luar biasa (festival).
+        </div>
+      </div>
+      <div class="konk" id="w0konk"><h3>🎯 Kesimpulan Cerita 1!</h3><p id="w0kt"></p></div>
+      <button class="abtn-next" id="w0next" style="display:none" onclick="switchScene(1)">🏫 Lanjut ke Kelas 8B →</button>
+    </div>
+
+
+    <!-- ============================================================
+         SCENE 1: KELAS 8B
+         ============================================================ -->
+    <div id="scene1" style="display:none">
+      <div class="anim-box" id="canvasBox1">
+        <canvas id="cvs1" width="680" height="280"></canvas>
+        <div class="anim-label">✦ Animasi Aktif</div>
+      </div>
+
+      <div class="narasi" style="--c-nar:var(--blue)">
+        <div class="nchar">
+          <div class="nava" style="background:rgba(77,166,255,.1);border-color:var(--blue)">👨‍🏫</div>
+          <div>
+            <div class="nname" style="color:var(--blue)">Pak Guru — Wali Kelas 8B</div>
+            <div class="nmsg">"Budi, ini nilai ulangan statistika kelas 8B. Ada <strong>Doni yang sakit</strong> dan terpaksa mengerjakan sambil demam — nilainya sangat rendah. Coba masukkan nilai Doni dan amati ukuran mana yang paling terpengaruh!"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dp" style="--c-dp:var(--blue)">
+        <div class="dp-hdr" style="color:var(--blue)">
+          📝 Nilai Ulangan Statistika Kelas 8B
+          <span class="dp-badge" style="background:var(--blue)" id="k0cnt">8 siswa</span>
+        </div>
+        <div class="balls-row" id="k0balls"></div>
+        <div class="bc">📌 Klik nilai untuk hapus</div>
+        <div class="sc3">
+          <div class="sc" style="--sc-c:var(--orange)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(255,140,66,.18),transparent 70%)"></div><div class="sc-lbl">📐 Mean</div><div class="sc-v" id="k0mean" style="color:var(--orange)">—</div><div class="sc-d" id="k0dmean"></div></div>
+          <div class="sc" style="--sc-c:var(--blue)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(77,166,255,.18),transparent 70%)"></div><div class="sc-lbl">📍 Median</div><div class="sc-v" id="k0med" style="color:var(--blue)">—</div><div class="sc-d" id="k0dmed"></div></div>
+          <div class="sc" style="--sc-c:var(--green)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(6,214,160,.18),transparent 70%)"></div><div class="sc-lbl">🔁 Modus</div><div class="sc-v" id="k0mod" style="color:var(--green)">—</div><div class="sc-d" id="k0dmod"></div></div>
+        </div>
+        <div class="ext-box" id="k0eb" style="display:none;border-color:rgba(77,166,255,.35)">
+          <span class="ext-lbl" style="color:var(--blue)">🤒 Masukkan nilai Doni yang sakit:</span>
+          <div class="ext-hint">Doni mengerjakan ujian sambil demam tinggi. Coba masukkan nilai seperti <strong>20</strong> atau <strong>30</strong> dan lihat bagaimana Mean kelas "terseret" turun!</div>
+          <div class="ext-row">
+            <input type="number" id="k0ei" placeholder="Nilai Doni (0–100)…" onkeydown="if(event.key==='Enter')k0ae()">
+            <button class="btn-ext" style="background:linear-gradient(135deg,var(--blue),#0097a7)" onclick="k0ae()">⚡</button>
+          </div>
+        </div>
+        <div class="act-row">
+          <button class="abtn abtn-b" id="k0eb-btn" onclick="k0se()">🤒 Tambah Nilai Doni</button>
+          <button class="abtn abtn-r" onclick="k0reset()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div class="cmp" id="k0cmp">
+        <div class="ctitle" style="--c-acc:var(--blue)"><div class="cdot" style="background:var(--blue);box-shadow:0 0 6px var(--blue)"></div>📊 Perbandingan Sebelum & Sesudah Doni Masuk</div>
+        <table class="ctbl"><thead><tr><th>Ukuran</th><th>Tanpa Doni</th><th>Dengan Doni</th><th>Selisih</th></tr></thead><tbody id="k0ctbl"></tbody></table>
+      </div>
+
+      <div class="refl" id="k0refl">
+        <div class="refl-label">💭 Pertanyaan Reflektif</div>
+        <div class="refl-q">"Jika Pak Guru ingin tahu nilai 'khas' kelas untuk laporan ke orang tua — ukuran mana yang paling jujur dan tidak menyesatkan?"</div>
+        <button class="refl-btn" onclick="toggleR('k0r')">💡 Lihat Penjelasan</button>
+        <div class="refl-ans" id="k0r">
+          Gunakan <strong style="color:var(--blue)">Median atau Modus</strong>! Keduanya tidak terpengaruh oleh nilai ekstrem Doni yang sakit.<br><br>
+          <strong style="color:var(--orange)">Mean</strong> kelas turun cukup jauh karena "terseret" nilai Doni — padahal 8 siswa lain nilainya baik. Ini menyesatkan bila dipakai untuk menggambarkan kemampuan umum kelas.<br><br>
+          <strong style="color:var(--white)">Tip nyata:</strong> Itulah kenapa laporan gaji dan harga properti hampir selalu menggunakan <em>median</em>, bukan mean!
+        </div>
+      </div>
+      <div class="konk" id="k0konk"><h3>🎯 Kesimpulan Cerita 2!</h3><p id="k0kt"></p></div>
+      <button class="abtn-next" style="background:linear-gradient(135deg,var(--blue),#0097a7)" id="k0next" onclick="switchScene(2)">🛒 Lanjut ke Toko Pak Andi →</button>
+    </div>
+
+
+    <!-- ============================================================
+         SCENE 2: TOKO PAK ANDI
+         ============================================================ -->
+    <div id="scene2" style="display:none">
+      <div class="anim-box" id="canvasBox2">
+        <canvas id="cvs2" width="680" height="280"></canvas>
+        <div class="anim-label">✦ Animasi Aktif</div>
+      </div>
+
+      <div class="narasi" style="--c-nar:var(--pink)">
+        <div class="nchar">
+          <div class="nava" style="background:rgba(255,107,157,.1);border-color:var(--pink)">👔</div>
+          <div>
+            <div class="nname" style="color:var(--pink)">Pak Andi — Pemilik Toko Pakaian</div>
+            <div class="nmsg">"Budi! Di toko saya, ukuran kaos paling banyak dibeli pelanggan adalah <strong>M</strong> — itulah Modus! Jadi saya pesan stok M lebih banyak dari ukuran lain. Kalau pakai Mean ukuran baju, hasilnya bisa aneh dan merugikan!"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="--c-acc:var(--pink);margin-bottom:12px">
+        <div class="ctitle"><div class="cdot" style="background:var(--pink);box-shadow:0 0 6px var(--pink)"></div>🌍 Kapan Pakai Ukuran Mana?</div>
+        <table class="ctbl">
+          <thead><tr><th>Ukuran</th><th>Paling cocok untuk…</th><th>Contoh nyata</th></tr></thead>
+          <tbody>
+            <tr><td><strong style="color:var(--orange)">Mean</strong></td><td style="color:#94a3b8">Data angka merata tanpa nilai ekstrem</td><td style="color:#94a3b8">Nilai rapor, suhu harian, BB bayi</td></tr>
+            <tr><td><strong style="color:var(--blue)">Median</strong></td><td style="color:#94a3b8">Ada nilai ekstrem / data condong</td><td style="color:#94a3b8">Harga rumah, gaji karyawan, pendapatan</td></tr>
+            <tr><td><strong style="color:var(--green)">Modus</strong></td><td style="color:#94a3b8">Data kategori, yang paling umum</td><td style="color:#94a3b8">Ukuran baju, menu terlaris, warna favorit</td></tr>
+          </tbody>
+        </table>
+        <div class="tip">🎯 <strong>Kunci:</strong> Ada nilai ekstrem → Median. Data kategori → Modus. Data angka merata → Mean. Tidak ada satu ukuran yang selalu terbaik — konteks menentukan!</div>
+      </div>
+
+      <a class="abtn-next" onclick="switchScene(3)">🌧️ Lanjut ke Curah Hujan →</a>
+    </div>
+
+
+    <!-- ============================================================
+         SCENE 3: CURAH HUJAN (BARU)
+         ============================================================ -->
+    <div id="scene3" style="display:none">
+      <div class="anim-box" id="canvasBox3">
+        <canvas id="cvs3" width="680" height="280"></canvas>
+        <div class="anim-label">✦ Animasi Aktif</div>
+      </div>
+
+      <div class="narasi" style="--c-nar:var(--blue)">
+        <div class="nchar">
+          <div class="nava" style="background:rgba(77,166,255,.1);border-color:var(--blue)">🌦️</div>
+          <div>
+            <div class="nname" style="color:var(--blue)">Pak BMKG — Petugas Cuaca</div>
+            <div class="nmsg">"Budi, ini data curah hujan harian selama seminggu (dalam mm). Tapi kemarin ada <strong>hujan badai ekstrem</strong>! Tambahkan data hari badai dan lihat ukuran mana yang paling stabil untuk prakiraan cuaca harian."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data curah hujan — EDIT DATA DEFAULT DI JS: R_DEF -->
+      <div class="dp" style="--c-dp:var(--blue)">
+        <div class="dp-hdr" style="color:var(--blue)">
+          🌧️ Curah Hujan Harian (mm)
+          <span class="dp-badge" style="background:var(--blue)" id="r0cnt">7 hari</span>
+          <span style="font-size:11px;color:var(--muted)" id="r0hint">cuaca normal</span>
+        </div>
+        <div class="balls-row" id="r0balls"></div>
+        <div class="bc">📌 Klik tetesan untuk hapus data</div>
+        <div class="sc3">
+          <div class="sc" style="--sc-c:var(--orange)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(255,140,66,.18),transparent 70%)"></div><div class="sc-lbl">📐 Mean</div><div class="sc-v" id="r0mean" style="color:var(--orange)">—</div><div class="sc-d" id="r0dmean"></div></div>
+          <div class="sc" style="--sc-c:var(--blue)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(77,166,255,.18),transparent 70%)"></div><div class="sc-lbl">📍 Median</div><div class="sc-v" id="r0med" style="color:var(--blue)">—</div><div class="sc-d" id="r0dmed"></div></div>
+          <div class="sc" style="--sc-c:var(--green)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(6,214,160,.18),transparent 70%)"></div><div class="sc-lbl">🔁 Modus</div><div class="sc-v" id="r0mod" style="color:var(--green)">—</div><div class="sc-d" id="r0dmod"></div></div>
+        </div>
+        <div class="ext-box" id="r0eb" style="display:none;border-color:rgba(77,166,255,.35)">
+          <span class="ext-lbl" style="color:var(--blue)">⛈️ Hari Hujan Badai Ekstrem:</span>
+          <div class="ext-hint">Badai bisa membawa curah hujan <strong>200–300 mm</strong> sehari! Jauh lebih banyak dari hari biasa. Coba masukkan dan lihat dampaknya.</div>
+          <div class="ext-row">
+            <input type="number" id="r0ei" placeholder="Curah hujan badai (mm)…" onkeydown="if(event.key==='Enter')r0ae()">
+            <button class="btn-ext" style="background:linear-gradient(135deg,var(--blue),#0050aa)" onclick="r0ae()">⛈️</button>
+          </div>
+        </div>
+        <div class="act-row">
+          <button class="abtn abtn-b" id="r0eb-btn" onclick="r0se()">⛈️ Tambah Hari Badai</button>
+          <button class="abtn abtn-r" onclick="r0reset()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div class="cmp" id="r0cmp">
+        <div class="ctitle" style="--c-acc:var(--blue)"><div class="cdot" style="background:var(--blue);box-shadow:0 0 6px var(--blue)"></div>📊 Curah Hujan: Normal vs Saat Badai</div>
+        <table class="ctbl"><thead><tr><th>Ukuran</th><th>Cuaca Normal</th><th>Ada Badai</th><th>Selisih</th></tr></thead><tbody id="r0ctbl"></tbody></table>
+      </div>
+
+      <div class="refl" id="r0refl">
+        <div class="refl-label">💭 Pertanyaan Reflektif</div>
+        <div class="refl-q">"Jika BMKG ingin memberikan informasi curah hujan 'khas' kota ini kepada petani untuk jadwal tanam — mana yang lebih berguna: Mean atau Median?"</div>
+        <button class="refl-btn" onclick="toggleR('r0r')">💡 Lihat Penjelasan</button>
+        <div class="refl-ans" id="r0r">
+          <strong style="color:var(--blue)">Median</strong> lebih berguna untuk petani! Mean curah hujan bisa terseret oleh beberapa hari badai ekstrem, membuat perkiraan jadi terlalu tinggi.<br><br>
+          Median memberi gambaran curah hujan "tengah" yang lebih mewakili hari-hari biasa — informasi yang lebih akurat untuk jadwal tanam.
+        </div>
+      </div>
+      <div class="konk" id="r0konk"><h3>🎯 Kesimpulan Cerita 4!</h3><p id="r0kt"></p></div>
+      <button class="abtn-next" style="background:linear-gradient(135deg,var(--blue),var(--purple))" id="r0next" onclick="switchScene(4)">🚦 Lanjut ke Lalu Lintas →</button>
+    </div>
+
+
+    <!-- ============================================================
+         SCENE 4: LALU LINTAS (BARU)
+         ============================================================ -->
+    <div id="scene4" style="display:none">
+      <div class="anim-box" id="canvasBox4">
+        <canvas id="cvs4" width="680" height="280"></canvas>
+        <div class="anim-label">✦ Animasi Aktif</div>
+      </div>
+
+      <div class="narasi" style="--c-nar:var(--yellow)">
+        <div class="nchar">
+          <div class="nava" style="background:rgba(255,209,102,.1);border-color:var(--yellow)">🚦</div>
+          <div>
+            <div class="nname" style="color:var(--yellow)">Pak Polisi — Petugas Lalu Lintas</div>
+            <div class="nmsg">"Budi! Ini data jumlah kendaraan yang melintas di persimpangan ini per jam. Tapi saat konser malam Minggu, kendaraan meledak! Tambahkan data jam konser dan bantu kami tentukan jadwal lampu merah yang optimal."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data lalu lintas — EDIT DATA DEFAULT DI JS: T_DEF -->
+      <div class="dp" style="--c-dp:var(--yellow)">
+        <div class="dp-hdr" style="color:var(--yellow)">
+          🚗 Jumlah Kendaraan/Jam di Persimpangan
+          <span class="dp-badge" style="background:var(--yellow)" id="t0cnt">8 jam</span>
+          <span style="font-size:11px;color:var(--muted)" id="t0hint">lalu lintas normal</span>
+        </div>
+        <div class="balls-row" id="t0balls"></div>
+        <div class="bc">📌 Klik kendaraan untuk hapus data</div>
+        <div class="sc3">
+          <div class="sc" style="--sc-c:var(--yellow)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(255,209,102,.18),transparent 70%)"></div><div class="sc-lbl">📐 Mean</div><div class="sc-v" id="t0mean" style="color:var(--yellow)">—</div><div class="sc-d" id="t0dmean"></div></div>
+          <div class="sc" style="--sc-c:var(--blue)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(77,166,255,.18),transparent 70%)"></div><div class="sc-lbl">📍 Median</div><div class="sc-v" id="t0med" style="color:var(--blue)">—</div><div class="sc-d" id="t0dmed"></div></div>
+          <div class="sc" style="--sc-c:var(--green)"><div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(6,214,160,.18),transparent 70%)"></div><div class="sc-lbl">🔁 Modus</div><div class="sc-v" id="t0mod" style="color:var(--green)">—</div><div class="sc-d" id="t0dmod"></div></div>
+        </div>
+        <div class="ext-box" id="t0eb" style="display:none;border-color:rgba(255,209,102,.35)">
+          <span class="ext-lbl" style="color:var(--yellow)">🎪 Jam Puncak Konser:</span>
+          <div class="ext-hint">Saat konser berlangsung, ribuan kendaraan memadati jalan. Coba masukkan angka seperti <strong>850</strong> atau <strong>1200</strong> dan lihat dampaknya!</div>
+          <div class="ext-row">
+            <input type="number" id="t0ei" placeholder="Jumlah kendaraan/jam…" onkeydown="if(event.key==='Enter')t0ae()">
+            <button class="btn-ext" style="background:linear-gradient(135deg,var(--yellow),#e09500);color:var(--bg)" onclick="t0ae()">🚗</button>
+          </div>
+        </div>
+        <div class="act-row">
+          <button class="abtn" style="background:rgba(255,209,102,.1);border-color:rgba(255,209,102,.5);color:var(--yellow)" id="t0eb-btn" onclick="t0se()">🎪 Tambah Jam Konser</button>
+          <button class="abtn abtn-r" onclick="t0reset()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div class="cmp" id="t0cmp">
+        <div class="ctitle" style="--c-acc:var(--yellow)"><div class="cdot" style="background:var(--yellow);box-shadow:0 0 6px var(--yellow)"></div>📊 Lalu Lintas: Normal vs Saat Konser</div>
+        <table class="ctbl"><thead><tr><th>Ukuran</th><th>Hari Biasa</th><th>Ada Konser</th><th>Selisih</th></tr></thead><tbody id="t0ctbl"></tbody></table>
+      </div>
+
+      <div class="refl" id="t0refl">
+        <div class="refl-label">💭 Pertanyaan Reflektif</div>
+        <div class="refl-q">"Pak Polisi ingin mengatur durasi lampu merah berdasarkan volume lalu lintas 'normal'. Jika data termasuk jam konser, ukuran mana yang sebaiknya digunakan?"</div>
+        <button class="refl-btn" onclick="toggleR('t0r')">💡 Lihat Penjelasan</button>
+        <div class="refl-ans" id="t0r">
+          <strong style="color:var(--blue)">Median</strong> lebih baik untuk lalu lintas normal! Jam konser adalah kejadian luar biasa — Mean akan terseret naik dan membuat lampu merah terlalu lama untuk hari biasa.<br><br>
+          <strong style="color:var(--green)">Modus</strong> juga berguna: volume yang paling sering terjadi menggambarkan kondisi "umum" jalan ini.
+        </div>
+      </div>
+      <div class="konk" id="t0konk"><h3>🎯 Kesimpulan Cerita 5!</h3><p id="t0kt"></p></div>
+      <div class="abtn-next" id="t0next" style="display:none;background:linear-gradient(135deg,var(--yellow),var(--orange));cursor:pointer" onclick="alert('Selamat! Kamu sudah menyelesaikan semua 5 cerita! 🎉 Lanjutkan ke Materi untuk pemahaman lebih dalam.')">
+        🎓 Selesai! Lanjut ke Materi Lengkap →
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+/* ================================================================
+   KONFIGURASI & DATA — EDIT BAGIAN INI DI VS CODE
+   ================================================================ */
+
+/* ── CONFIG SCENE: Judul & warna tiap scene ──
+   Untuk mengubah data default, cari konstanta di bawah ini:
+   W_DEF = data Warung, K_DEF = Kelas, R_DEF = Curah Hujan, T_DEF = Lalu Lintas */
+
+/* Data default WARUNG BU SARI — ubah angka-angka ini */
+const W_DEF = [45, 50, 38, 52, 48, 50, 42];
+
+/* Data default KELAS 8B — ubah angka-angka ini */
+const K_DEF = [78, 82, 85, 80, 82, 88, 76, 82];
+
+/* Data default CURAH HUJAN (mm/hari) — ubah angka-angka ini */
+const R_DEF = [12, 8, 15, 10, 8, 11, 9];
+
+/* Data default LALU LINTAS (kendaraan/jam) — ubah angka-angka ini */
+const T_DEF = [320, 280, 350, 310, 295, 340, 300, 285];
+
+
+/* ================================================================
+   ANIMASI LATAR (CANVAS) — 5 scene berbeda
+   Setiap fungsi draw* bisa diedit untuk mengubah animasi
+   ================================================================ */
+
+/* ── State animasi ── */
+let tick = 0; // counter waktu untuk semua animasi
+
+/* Ukuran canvas responsif */
+function sizeCanvas(cvs) {
+  const box = cvs.parentElement;
+  const w = box.clientWidth;
+  const ratio = 280 / 680;
+  cvs.style.width = w + 'px';
+  cvs.style.height = (w * ratio) + 'px';
+}
+
+/* ── ANIMASI 1: WARUNG BU SARI ──
+   Scene: pasar pagi, matahari, awan bergerak, karakter berjalan, uap mie
+   EDIT: warna langit, kecepatan awan, jumlah karakter */
+function drawWarung(ctx, w, h, t) {
+  // Langit gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, h * .65);
+  sky.addColorStop(0, '#87CEEB');
+  sky.addColorStop(1, '#B0E0FF');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h);
+
+  // Matahari bersinar (berputar perlahan)
+  const sx = w * .88, sy = h * .15;
+  ctx.save();
+  ctx.translate(sx, sy);
+  // Sinar matahari
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 + t * .008;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * 22, Math.sin(a) * 22);
+    ctx.lineTo(Math.cos(a) * 30, Math.sin(a) * 30);
+    ctx.strokeStyle = 'rgba(255,220,50,.7)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+  // Bola matahari
+  const sunG = ctx.createRadialGradient(0, 0, 2, 0, 0, 18);
+  sunG.addColorStop(0, '#FFEE58');
+  sunG.addColorStop(1, '#FFA726');
+  ctx.fillStyle = sunG;
+  ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Awan bergerak — 3 awan dengan kecepatan berbeda
+  drawCloud(ctx, ((w * .18 + t * .25) % (w + 120)) - 60, h * .18, 1.1, .85);
+  drawCloud(ctx, ((w * .55 + t * .15) % (w + 120)) - 60, h * .09, .9, .9);
+  drawCloud(ctx, ((w * .72 + t * .35) % (w + 120)) - 60, h * .22, .75, .78);
+
+  // Tanah & aspal
+  ctx.fillStyle = '#5DBB63';
+  ctx.fillRect(0, h * .8, w, h * .2);
+  ctx.fillStyle = '#888';
+  ctx.fillRect(0, h * .8, w, h * .03);
+
+  // Bangunan warung
+  drawWarungBuilding(ctx, w * .14, h * .35, w * .56, h * .46, t);
+
+  // Mangkok mie berasap
+  drawBowl(ctx, w * .76, h * .7, t);
+  drawBowl(ctx, w * .88, h * .68, t + 30);
+
+  // Karakter Bu Sari (floating)
+  const buSariY = h * .52 + Math.sin(t * .04) * 5;
+  drawChar(ctx, w * .85, buSariY, '#FFCC80', '#E91E63', '#6A1B9A', 14);
+
+  // Karakter berjalan (Budi)
+  const budiX = (t * .7 % (w + 40)) - 20;
+  drawChar(ctx, budiX, h * .82, '#FFD93D', '#FF6B35', '#1565C0', 11);
+
+  // Pelanggan berjalan (arah berlawanan)
+  const pelX = w - ((t * .45 % (w + 40)) - 20);
+  drawChar(ctx, pelX, h * .83, '#FFCC80', '#9C27B0', '#4CAF50', 10);
+
+  // Pohon kiri
+  drawTree(ctx, w * .04, h * .76);
+  drawTree(ctx, w * .10, h * .78);
+}
+
+/* Helper: gambar awan */
+function drawCloud(ctx, x, y, sx, opacity) {
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.ellipse(x, y, 35 * sx, 14 * sx, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x - 16 * sx, y - 5 * sx, 16 * sx, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 14 * sx, y - 6 * sx, 18 * sx, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* Helper: gambar karakter stickman sederhana */
+function drawChar(ctx, x, y, skin, shirt, pants, r) {
+  ctx.save();
+  // Kepala
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  // Mata
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(x - r * .35, y - r * .1, r * .15, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + r * .35, y - r * .1, r * .15, 0, Math.PI * 2); ctx.fill();
+  // Badan
+  ctx.fillStyle = shirt;
+  ctx.beginPath(); ctx.roundRect(x - r * .7, y + r, r * 1.4, r * 1.8, r * .3); ctx.fill();
+  // Celana
+  ctx.fillStyle = pants;
+  ctx.beginPath(); ctx.roundRect(x - r * .7, y + r * 2.6, r * 1.4, r * 1.6, r * .3); ctx.fill();
+  ctx.restore();
+}
+
+/* Helper: bangunan warung */
+function drawWarungBuilding(ctx, x, y, bw, bh, t) {
+  // Dinding
+  ctx.fillStyle = '#FFCC80';
+  ctx.beginPath(); ctx.roundRect(x, y + bh * .18, bw, bh * .82, 6); ctx.fill();
+  // Atap
+  ctx.fillStyle = '#FF5722';
+  ctx.beginPath(); ctx.moveTo(x - bw * .06, y + bh * .18);
+  ctx.lineTo(x + bw / 2, y); ctx.lineTo(x + bw + bw * .06, y + bh * .18); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FF7043';
+  ctx.beginPath(); ctx.moveTo(x, y + bh * .18);
+  ctx.lineTo(x + bw / 2, y + bh * .05); ctx.lineTo(x + bw, y + bh * .18); ctx.closePath(); ctx.fill();
+  // Papan nama
+  ctx.fillStyle = '#FFF9C4';
+  ctx.beginPath(); ctx.roundRect(x + bw * .18, y + bh * .22, bw * .64, bh * .15, 5); ctx.fill();
+  ctx.strokeStyle = '#FF6B35'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(x + bw * .18, y + bh * .22, bw * .64, bh * .15, 5); ctx.stroke();
+  ctx.fillStyle = '#FF6B35'; ctx.font = `bold ${bh * .11}px Fredoka One,sans-serif`;
+  ctx.textAlign = 'center'; ctx.fillText('Warung Bu Sari', x + bw / 2, y + bh * .32);
+  // Pintu
+  ctx.fillStyle = '#8B4513';
+  ctx.beginPath(); ctx.roundRect(x + bw * .38, y + bh * .65, bw * .24, bh * .35, 4); ctx.fill();
+  // Jendela
+  ctx.fillStyle = '#B3E5FC';
+  ctx.beginPath(); ctx.roundRect(x + bw * .08, y + bh * .42, bw * .22, bh * .22, 3); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x + bw * .70, y + bh * .42, bw * .22, bh * .22, 3); ctx.fill();
+  // Asap
+  for (let i = 0; i < 3; i++) {
+    const sy = y - ((t * .04 + i * 20) % 40);
+    const sa = Math.min(0.5, (y - sy) / 40 * .5);
+    ctx.fillStyle = `rgba(180,180,180,${sa})`;
+    ctx.beginPath(); ctx.ellipse(x + bw * .25 + i * 15, sy, 5, 8, 0, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* Helper: mangkok mie dengan uap */
+function drawBowl(ctx, x, y, t) {
+  ctx.fillStyle = '#8D6E63';
+  ctx.beginPath(); ctx.ellipse(x, y, 28, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#A1887F';
+  ctx.beginPath(); ctx.ellipse(x, y - 4, 28, 8, 0, 0, Math.PI * 2); ctx.fill();
+  // Mie
+  ctx.fillStyle = '#FFCC80';
+  ctx.beginPath(); ctx.ellipse(x, y - 5, 20, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // Uap
+  for (let i = 0; i < 2; i++) {
+    const sy = ((t * .05 + i * 25) % 30);
+    ctx.fillStyle = `rgba(255,200,150,${0.4 - sy / 30 * .4})`;
+    ctx.beginPath(); ctx.ellipse(x - 6 + i * 12, y - sy - 8, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* Helper: pohon */
+function drawTree(ctx, x, y) {
+  ctx.fillStyle = '#795548';
+  ctx.fillRect(x - 4, y - 20, 8, 24);
+  ctx.fillStyle = '#66BB6A';
+  ctx.beginPath(); ctx.arc(x, y - 28, 20, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#81C784';
+  ctx.beginPath(); ctx.arc(x - 8, y - 22, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4CAF50';
+  ctx.beginPath(); ctx.arc(x + 10, y - 24, 14, 0, Math.PI * 2); ctx.fill();
+}
+
+
+/* ── ANIMASI 2: KELAS 8B ──
+   Scene: ruang kelas, papan tulis, siswa duduk, guru menulis */
+function drawKelas(ctx, w, h, t) {
+  // Latar kelas — dinding hijau sekolah
+  ctx.fillStyle = '#E8F5E9';
+  ctx.fillRect(0, 0, w, h);
+  // Lantai
+  ctx.fillStyle = '#D7CCC8';
+  ctx.fillRect(0, h * .78, w, h);
+
+  // Jendela kiri
+  for (let j = 0; j < 2; j++) {
+    const wx = w * (.04 + j * .16);
+    ctx.fillStyle = '#B3E5FC';
+    ctx.beginPath(); ctx.roundRect(wx, h * .08, w * .12, h * .32, 4); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(wx + w * .06, h * .08); ctx.lineTo(wx + w * .06, h * .4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx, h * .24); ctx.lineTo(wx + w * .12, h * .24); ctx.stroke();
+    // Cahaya masuk
+    ctx.fillStyle = 'rgba(255,240,200,.06)';
+    ctx.beginPath();
+    ctx.moveTo(wx + w * .02, h * .08);
+    ctx.lineTo(wx + w * .1, h * .08);
+    ctx.lineTo(wx + w * .25, h * .78);
+    ctx.lineTo(wx - w * .02, h * .78);
+    ctx.fill();
+  }
+
+  // Papan tulis besar
+  ctx.fillStyle = '#1B5E20';
+  ctx.beginPath(); ctx.roundRect(w * .36, h * .06, w * .6, h * .58, 7); ctx.fill();
+  ctx.strokeStyle = '#795548'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect(w * .36, h * .06, w * .6, h * .58, 7); ctx.stroke();
+
+  // Tulisan di papan (berkedip/muncul bergantian)
+  ctx.fillStyle = '#A5D6A7';
+  ctx.font = `${h * .075}px Fredoka One,sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Statistika — Kelas 8B', w * .66, h * .22);
+
+  ctx.fillStyle = '#C8E6C9';
+  ctx.font = `${h * .055}px Arial,sans-serif`;
+  ctx.textAlign = 'left';
+  const rumus = ['Mean = Σx ÷ n', 'Median = nilai tengah', 'Modus = terbanyak'];
+  rumus.forEach((r, i) => {
+    // Animasi muncul satu per satu
+    const alpha = Math.min(1, Math.max(0, (t - i * 30) / 20));
+    ctx.globalAlpha = alpha;
+    ctx.fillText(r, w * .42, h * (.35 + i * .14));
+  });
+  ctx.globalAlpha = 1;
+
+  // Grafik batang di pojok papan — bergerak tumbuh
+  const barColors = ['#FFD93D', '#4ECDC4', '#FF6B9D', '#FF6B35', '#A55EEA'];
+  const barHeights = [52, 38, 66, 44, 60].map(bh => bh * .55);
+  barColors.forEach((c, i) => {
+    const bx = w * .78 + i * (w * .035);
+    const maxH = barHeights[i];
+    const curH = Math.min(maxH, maxH * (Math.max(0, t - 20) / 40));
+    const by = h * .58;
+    ctx.fillStyle = c;
+    ctx.globalAlpha = .85;
+    ctx.beginPath(); ctx.roundRect(bx, by - curH, w * .025, curH, 3); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Guru di depan papan (bergerak menulis)
+  const guruX = w * .9 + Math.sin(t * .05) * 8;
+  drawChar(ctx, guruX, h * .5, '#FFCC80', '#1565C0', '#4E342E', 17);
+
+  // Pointer guru (bergerak)
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(guruX - 14, h * .48);
+  ctx.lineTo(w * .75, h * (.35 + Math.sin(t * .03) * .05));
+  ctx.stroke();
+
+  // Meja siswa
+  const deskY = h * .78;
+  for (let i = 0; i < 5; i++) {
+    const dx = w * (.04 + i * .19);
+    ctx.fillStyle = '#D7B896';
+    ctx.beginPath(); ctx.roundRect(dx, deskY, w * .14, h * .08, 3); ctx.fill();
+    // Buku di meja
+    ctx.fillStyle = ['#FF6B9D','#4ECDC4','#FF6B35','#A55EEA','#FFD93D'][i];
+    ctx.beginPath(); ctx.roundRect(dx + w * .02, deskY - h * .04, w * .08, h * .04, 2); ctx.fill();
+    // Siswa duduk
+    const skinCols = ['#FFCC80','#FFE082','#FFD93D','#FFCC80','#FFE082'];
+    const shirtCols = ['#E91E63','#2196F3','#FF6B35','#9C27B0','#4CAF50'];
+    drawChar(ctx, dx + w * .07, deskY - h * .05, skinCols[i], shirtCols[i], '#555', 9);
+  }
+}
+
+
+/* ── ANIMASI 3: TOKO PAK ANDI ──
+   Scene: toko pakaian, baju di gantungan bergoyang, pelanggan belanja */
+function drawToko(ctx, w, h, t) {
+  // Latar pink
+  ctx.fillStyle = '#FCE4EC';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#F48FB1';
+  ctx.fillRect(0, h * .84, w, h);
+
+  // Bangunan toko
+  ctx.fillStyle = '#F8BBD9';
+  ctx.beginPath(); ctx.roundRect(w * .14, h * .28, w * .56, h * .58, 7); ctx.fill();
+  ctx.fillStyle = '#E91E63';
+  ctx.fillRect(w * .14, h * .28, w * .56, h * .09);
+
+  // Papan nama
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.roundRect(w * .26, h * .31, w * .32, h * .11, 5); ctx.fill();
+  ctx.strokeStyle = '#E91E63'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(w * .26, h * .31, w * .32, h * .11, 5); ctx.stroke();
+  ctx.fillStyle = '#E91E63'; ctx.font = `bold ${h * .07}px Fredoka One,sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Toko Pak Andi', w * .42, h * .4);
+
+  // Etalase kaca
+  ctx.fillStyle = 'rgba(179,229,252,.3)';
+  ctx.beginPath(); ctx.roundRect(w * .18, h * .44, w * .48, h * .3, 5); ctx.fill();
+  ctx.strokeStyle = '#E91E63'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(w * .18, h * .44, w * .48, h * .3, 5); ctx.stroke();
+
+  // Baju di gantungan (bergoyang)
+  const shirtColors = ['#FF6B9D','#4ECDC4','#FF6B35','#A55EEA','#FFD93D','#E91E63'];
+  const labels = ['M','M','L','S','M','XL'];
+  for (let i = 0; i < 6; i++) {
+    const bx = w * (.21 + i * .082);
+    const swing = Math.sin(t * .04 + i * .8) * 6;
+    ctx.save();
+    ctx.translate(bx, h * .44);
+    ctx.rotate(swing * Math.PI / 180);
+    // Gantungan
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, h * .22); ctx.stroke();
+    // Baju
+    ctx.fillStyle = shirtColors[i];
+    ctx.globalAlpha = .9;
+    ctx.beginPath();
+    ctx.moveTo(-10, h * .05);
+    ctx.bezierCurveTo(-14, h * .08, -14, h * .22, -8, h * .22);
+    ctx.lineTo(8, h * .22);
+    ctx.bezierCurveTo(14, h * .22, 14, h * .08, 10, h * .05);
+    ctx.bezierCurveTo(6, h * .02, -6, h * .02, -10, h * .05);
+    ctx.fill();
+    // Label ukuran
+    ctx.fillStyle = 'white'; ctx.font = `bold ${h * .055}px Arial,sans-serif`;
+    ctx.textAlign = 'center'; ctx.globalAlpha = 1;
+    ctx.fillText(labels[i], 0, h * .16);
+    ctx.restore();
+  }
+
+  // Pak Andi (floating)
+  const pakY = h * .54 + Math.sin(t * .035) * 5;
+  drawChar(ctx, w * .82, pakY, '#FFCC80', '#0D47A1', '#4A148C', 15);
+
+  // Pelanggan 1 — berjalan masuk
+  const cust1X = ((t * .5) % (w * .8 + 40)) + w * .05;
+  if (cust1X < w * .75) drawChar(ctx, cust1X, h * .85, '#FFD93D', '#FF6B35', '#1565C0', 11);
+
+  // Pelanggan 2 — sudah ada di toko
+  drawChar(ctx, w * .32, h * .82, '#FFCC80', '#9C27B0', '#2E7D32', 11);
+
+  // Tas belanja animasi
+  const bagX = w * .32 + Math.sin(t * .06) * 4;
+  ctx.fillStyle = '#FF6B9D';
+  ctx.beginPath(); ctx.roundRect(bagX - 10, h * .78, 20, 16, 3); ctx.fill();
+  ctx.strokeStyle = '#C2185B'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(bagX - 5, h * .78); ctx.quadraticCurveTo(bagX, h * .73, bagX + 5, h * .78); ctx.stroke();
+}
+
+
+/* ── ANIMASI 4: HUJAN / CURAH HUJAN ──
+   Scene: hujan deras, petir, awan gelap, orang berpayung */
+function drawHujan(ctx, w, h, t) {
+  // Langit mendung
+  const skyG = ctx.createLinearGradient(0, 0, 0, h);
+  skyG.addColorStop(0, '#546E7A');
+  skyG.addColorStop(.5, '#78909C');
+  skyG.addColorStop(1, '#B0BEC5');
+  ctx.fillStyle = skyG;
+  ctx.fillRect(0, 0, w, h);
+
+  // Awan gelap bergerak
+  for (let i = 0; i < 4; i++) {
+    const cx = ((t * (.15 + i * .04) + i * 180) % (w + 200)) - 100;
+    const cy = h * (.08 + i * .07);
+    ctx.fillStyle = ['#455A64','#37474F','#546E7A','#4A5568'][i];
+    ctx.globalAlpha = .85;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 80 + i * 20, 22 + i * 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - 25, cy - 8, 22 + i * 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 25, cy - 10, 26 + i * 3, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Petir sekali-sekali
+  if (Math.floor(t / 40) % 5 === 0 && t % 40 < 5) {
+    ctx.strokeStyle = 'rgba(255,255,100,.9)';
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 15; ctx.shadowColor = '#FFD';
+    ctx.beginPath();
+    ctx.moveTo(w * .55, h * .12);
+    ctx.lineTo(w * .50, h * .28);
+    ctx.lineTo(w * .55, h * .34);
+    ctx.lineTo(w * .50, h * .5);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Hujan — tetes-tetes jatuh
+  ctx.strokeStyle = 'rgba(150,200,255,.7)';
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < 120; i++) {
+    const rx = (i * 137 + t * 4) % w;
+    const ry = ((i * 73 + t * 8) % h);
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(rx - 2, ry + 12);
+    ctx.stroke();
+  }
+
+  // Genangan air di tanah (beriak)
+  ctx.fillStyle = '#90A4AE';
+  ctx.fillRect(0, h * .78, w, h * .22);
+  for (let i = 0; i < 8; i++) {
+    const px = w * (.08 + i * .12);
+    const pr = ((t * .08 + i * 15) % 25);
+    ctx.strokeStyle = `rgba(180,210,255,${0.5 - pr / 25 * .5})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(px, h * .84, pr * .7, pr * .2, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  // Gedung/rumah di latar
+  for (let i = 0; i < 5; i++) {
+    const bx = w * (.02 + i * .2);
+    const bh2 = h * (.25 + (i % 3) * .1);
+    ctx.fillStyle = ['#546E7A','#455A64','#607D8B','#37474F','#78909C'][i];
+    ctx.fillRect(bx, h * .78 - bh2, w * .16, bh2);
+    // Jendela menyala
+    ctx.fillStyle = 'rgba(255,230,100,.6)';
+    for (let j = 0; j < 3; j++) {
+      for (let k = 0; k < 2; k++) {
+        if (Math.random() > .3) {
+          ctx.fillRect(bx + w * .02 + k * w * .06, h * .78 - bh2 + h * .05 + j * h * .07, w * .04, h * .045);
+        }
+      }
+    }
+  }
+
+  // Orang berpayung
+  drawPayung(ctx, w * .25, h * .8, t, '#FF6B9D', '#E91E63');
+  drawPayung(ctx, ((t * .6 + 200) % (w + 60)) - 30, h * .82, t, '#4ECDC4', '#00838F');
+
+  // Label mm
+  ctx.fillStyle = 'rgba(150,210,255,.8)';
+  ctx.font = `${h * .07}px Fredoka One,sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('📊 Curah Hujan (mm)', w * .5, h * .95);
+}
+
+/* Helper: orang berpayung */
+function drawPayung(ctx, x, y, t, payungColor, handleColor) {
+  ctx.save();
+  ctx.translate(x, y);
+  // Orang
+  ctx.fillStyle = '#FFCC80';
+  ctx.beginPath(); ctx.arc(0, -28, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = handleColor;
+  ctx.beginPath(); ctx.roundRect(-7, -20, 14, 20, 3); ctx.fill();
+  // Pegangan payung
+  ctx.strokeStyle = handleColor; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, -36); ctx.stroke();
+  // Payung
+  const pw = 28, pa = Math.sin(t * .03) * 5;
+  ctx.fillStyle = payungColor;
+  ctx.beginPath();
+  ctx.arc(0, -36, pw, Math.PI + pa * .05, Math.PI * 2 - pa * .05); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = .5;
+  // Jari-jari payung
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI + (i / 5) * Math.PI;
+    ctx.beginPath(); ctx.moveTo(0, -36); ctx.lineTo(Math.cos(a) * pw, -36 + Math.sin(a) * pw * .3); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+
+/* ── ANIMASI 5: LALU LINTAS ──
+   Scene: jalan raya, kendaraan bergerak, lampu merah, persimpangan */
+function drawLaluLintas(ctx, w, h, t) {
+  // Latar — langit sore
+  const skyG = ctx.createLinearGradient(0, 0, 0, h * .6);
+  skyG.addColorStop(0, '#FF8A65');
+  skyG.addColorStop(.4, '#FFAB76');
+  skyG.addColorStop(1, '#FFD599');
+  ctx.fillStyle = skyG;
+  ctx.fillRect(0, 0, w, h * .6);
+
+  // Gedung-gedung siluet
+  const bldgH = [.38, .28, .45, .32, .42, .35, .50, .29];
+  const bldgW = w / bldgH.length;
+  bldgH.forEach((bh, i) => {
+    ctx.fillStyle = `rgba(50,30,20,${.7 + i * .02})`;
+    ctx.fillRect(i * bldgW, h * (.6 - bh), bldgW * .95, h * bh);
+    // Jendela
+    ctx.fillStyle = 'rgba(255,230,100,.5)';
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) {
+      if ((t + i + r * c) % 7 !== 0)
+        ctx.fillRect(i * bldgW + c * bldgW * .28 + bldgW * .08, h * (.6 - bh) + r * h * .08 + h * .03, bldgW * .18, h * .05);
+    }
+  });
+
+  // Jalan
+  ctx.fillStyle = '#37474F';
+  ctx.fillRect(0, h * .6, w, h * .4);
+  // Marka jalan
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2; ctx.setLineDash([20, 15]);
+  ctx.beginPath(); ctx.moveTo(0, h * .78); ctx.lineTo(w, h * .78); ctx.stroke();
+  ctx.setLineDash([]);
+  // Garis putih tepi
+  ctx.strokeStyle = 'white'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(0, h * .62); ctx.lineTo(w, h * .62); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, h * .98); ctx.lineTo(w, h * .98); ctx.stroke();
+
+  // Trotoar
+  ctx.fillStyle = '#90A4AE';
+  ctx.fillRect(0, h * .6, w, h * .03);
+
+  // Lampu lalu lintas di tengah
+  const tlPhase = Math.floor(t / 60) % 3; // 0=merah, 1=kuning, 2=hijau
+  drawTrafficLight(ctx, w * .48, h * .5, tlPhase);
+
+  // Kendaraan bergerak di jalur 1 (kiri ke kanan)
+  const cars1 = [
+    { x: (t * 1.8 % (w + 60)) - 30,  y: h * .66, color: '#E53935', type: 'car' },
+    { x: (t * 1.2 + 180 % (w + 60)) - 30, y: h * .66, color: '#1E88E5', type: 'car' },
+    { x: (t * 2.2 + 80 % (w + 60)) - 30, y: h * .66, color: '#43A047', type: 'truck' },
+  ];
+  // Kendaraan di jalur 2 (kanan ke kiri)
+  const cars2 = [
+    { x: w - (t * 1.5 % (w + 60)) + 30, y: h * .87, color: '#F57C00', type: 'car' },
+    { x: w - (t * 1.0 + 200 % (w + 60)) + 30, y: h * .87, color: '#8E24AA', type: 'car' },
+  ];
+  [...cars1, ...cars2].forEach(car => {
+    if (car.type === 'truck') drawTruck(ctx, car.x, car.y, car.color, car.y < h * .78);
+    else drawCar(ctx, car.x, car.y, car.color, car.y < h * .78);
+  });
+
+  // Motor
+  const moto = (t * 2.5 + 300) % (w + 40) - 20;
+  drawMotor(ctx, moto, h * .71, '#FF6B35');
+
+  // Orang menyeberang saat lampu merah
+  if (tlPhase === 0) {
+    const personX = w * .47 + Math.sin(t * .06) * 2;
+    drawChar(ctx, personX, h * .62, '#FFCC80', '#9C27B0', '#1565C0', 9);
+  }
+
+  // Statistik mini
+  ctx.fillStyle = 'rgba(255,255,255,.8)';
+  ctx.font = `${h * .065}px Fredoka One,sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText('🚗 Data Kendaraan/Jam', w * .02, h * .57);
+}
+
+/* Helper: gambar mobil */
+function drawCar(ctx, x, y, color, goRight) {
+  ctx.save();
+  if (!goRight) { ctx.scale(-1, 1); x = -x; }
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(x - 20, y - 10, 40, 14, 4); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x - 13, y - 18, 26, 11, 4); ctx.fill();
+  // Roda
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(x - 12, y + 4, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 12, y + 4, 5, 0, Math.PI * 2); ctx.fill();
+  // Kaca
+  ctx.fillStyle = 'rgba(180,220,255,.7)';
+  ctx.beginPath(); ctx.roundRect(x - 10, y - 17, 10, 9, 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x + 1, y - 17, 10, 9, 2); ctx.fill();
+  ctx.restore();
+}
+
+/* Helper: truck */
+function drawTruck(ctx, x, y, color, goRight) {
+  ctx.save();
+  if (!goRight) { ctx.scale(-1, 1); x = -x; }
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(x - 28, y - 10, 56, 15, 4); ctx.fill();
+  ctx.fillStyle = '#CFD8DC';
+  ctx.beginPath(); ctx.roundRect(x - 28, y - 18, 24, 13, 3); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(x - 18, y + 5, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 18, y + 5, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* Helper: motor */
+function drawMotor(ctx, x, y, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(x - 12, y - 6, 24, 9, 4); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(x - 9, y + 3, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 9, y + 3, 4, 0, Math.PI * 2); ctx.fill();
+  // Pengendara
+  ctx.fillStyle = '#FFCC80';
+  ctx.beginPath(); ctx.arc(x + 3, y - 12, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(x + 3, y - 16, 7, 0, Math.PI); ctx.fill();
+}
+
+/* Helper: lampu lalu lintas */
+function drawTrafficLight(ctx, x, y, phase) {
+  // Tiang
+  ctx.fillStyle = '#333';
+  ctx.fillRect(x - 3, y, 6, 80);
+  // Kotak
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.roundRect(x - 12, y - 55, 24, 58, 5); ctx.fill();
+  // Lampu
+  const lamp = ['#FF1744', '#FFEA00', '#00E676'];
+  lamp.forEach((c, i) => {
+    ctx.fillStyle = phase === i ? c : 'rgba(255,255,255,.15)';
+    if (phase === i) { ctx.shadowBlur = 12; ctx.shadowColor = c; }
+    ctx.beginPath(); ctx.arc(x, y - 42 + i * 18, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+
+/* ================================================================
+   LOOP ANIMASI UTAMA
+   ================================================================ */
+const canvases = {
+  0: document.getElementById('cvs0'),
+  1: document.getElementById('cvs1'),
+  2: document.getElementById('cvs2'),
+  3: document.getElementById('cvs3'),
+  4: document.getElementById('cvs4'),
+};
+const ctxs = {};
+Object.keys(canvases).forEach(k => {
+  ctxs[k] = canvases[k].getContext('2d');
+  sizeCanvas(canvases[k]);
+});
+window.addEventListener('resize', () => Object.values(canvases).forEach(sizeCanvas));
+
+let currentScene = 0;
+const drawFunctions = [drawWarung, drawKelas, drawToko, drawHujan, drawLaluLintas];
+
+function animLoop() {
+  tick++;
+  const cvs = canvases[currentScene];
+  const ctx = ctxs[currentScene];
+  if (!ctx || !cvs) { requestAnimationFrame(animLoop); return; }
+  const w = cvs.width, h = cvs.height;
+  ctx.clearRect(0, 0, w, h);
+  drawFunctions[currentScene](ctx, w, h, tick);
+  requestAnimationFrame(animLoop);
+}
+animLoop();
+
+
+/* ================================================================
+   PARTIKEL & KONFETI
+   ================================================================ */
+const pC = document.getElementById('particles'), pX = pC.getContext('2d'); let pA = [];
+function resP(){ pC.width = innerWidth; pC.height = innerHeight; } resP(); window.addEventListener('resize', resP);
+function burst(x, y, col, n = 16) {
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI*2/n)*i + Math.random()*.5, s = 2+Math.random()*5;
+    pA.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,r:2+Math.random()*3,col,al:1,dec:.025+Math.random()*.015});
+  }
+}
+function animP() {
+  pX.clearRect(0,0,pC.width,pC.height); pA=pA.filter(p=>p.al>0);
+  pA.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.al-=p.dec;pX.beginPath();pX.arc(p.x,p.y,p.r,0,Math.PI*2);pX.fillStyle=p.col+Math.floor(p.al*255).toString(16).padStart(2,'0');pX.fill();});
+  requestAnimationFrame(animP);
+}
+animP();
+
+const cC = document.getElementById('confettiC'), cX = cC.getContext('2d'); let cA = [];
+function resC(){ cC.width = innerWidth; cC.height = innerHeight; } resC(); window.addEventListener('resize', resC);
+function confetti(n=40) {
+  const cols=['#00e5cc','#ff8c42','#ffd166','#4da6ff','#06d6a0','#c77dff','#ff6b9d'];
+  for(let i=0;i<n;i++) cA.push({x:Math.random()*cC.width,y:-10,vx:(Math.random()-.5)*4,vy:3+Math.random()*4,r:4+Math.random()*5,col:cols[Math.floor(Math.random()*cols.length)],rot:Math.random()*360,vr:(Math.random()-.5)*8,al:1});
+}
+function animC() {
+  cX.clearRect(0,0,cC.width,cC.height); cA=cA.filter(p=>p.al>0);
+  cA.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;if(p.y>cC.height*.7)p.al-=.012;cX.save();cX.translate(p.x,p.y);cX.rotate(p.rot*Math.PI/180);cX.globalAlpha=p.al;cX.fillStyle=p.col;cX.fillRect(-p.r,-p.r/2,p.r*2,p.r);cX.restore();});
+  requestAnimationFrame(animC);
+}
+animC();
+
+
+/* ================================================================
+   SWITCH SCENE
+   ================================================================ */
+function switchScene(n) {
+  currentScene = n;
+  [0,1,2,3,4].forEach(i => {
+    const el = document.getElementById('scene'+i);
+    const tab = document.getElementById('stab'+i);
+    if(el) el.style.display = i===n ? 'block' : 'none';
+    if(tab) tab.classList.toggle('active', i===n);
+  });
+  window.scrollTo(0,0);
+}
+
+
+/* ================================================================
+   PETUNJUK PENGGUNAAN
+   ================================================================ */
+function bukaPetunjuk() {
+  document.getElementById('modalPetunjuk').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function tutupPetunjuk() {
+  document.getElementById('modalPetunjuk').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Buka otomatis saat pertama kali masuk (hanya 1x per sesi)
+window.addEventListener('DOMContentLoaded', () => {
+  if (!sessionStorage.getItem('petunjukSeen')) {
+    setTimeout(() => { bukaPetunjuk(); sessionStorage.setItem('petunjukSeen','1'); }, 800);
+  }
+});
+// Tutup dengan ESC
+document.addEventListener('keydown', e => { if(e.key==='Escape') tutupPetunjuk(); });
+
+
+/* ================================================================
+   KALKULASI STATISTIK
+   ================================================================ */
+function calc(arr) {
+  if(!arr.length) return {mean:null,median:null,modus:null,sorted:[],freq:{}};
+  const sorted=[...arr].sort((a,b)=>a-b);
+  const mean=+(arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(2);
+  const m=Math.floor(sorted.length/2);
+  const median=sorted.length%2===0?+((sorted[m-1]+sorted[m])/2).toFixed(2):sorted[m];
+  const freq={};arr.forEach(v=>freq[v]=(freq[v]||0)+1);
+  const maxF=Math.max(...Object.values(freq));
+  const modi=maxF===1?null:Object.keys(freq).filter(k=>+freq[k]===maxF).map(Number).sort((a,b)=>a-b);
+  return{mean,median,modus:modi?modi.join(', '):'—',sorted,freq};
+}
+function updSC(id,val,col,anim){
+  const el=document.getElementById(id);if(!el)return;
+  const v=val!=null?val:'—';
+  if(anim&&el.textContent!==String(v)){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),400);}
+  el.textContent=v;if(col)el.style.color=col;
+}
+function updD(id,b,a){
+  const el=document.getElementById(id);if(!el)return;
+  if(typeof b==='number'&&typeof a==='number'){const d=+(a-b).toFixed(2);el.textContent=(d>0?'▲ +':d<0?'▼ ':'')+d;el.style.color=d>0?'var(--orange)':d<0?'var(--blue)':'var(--muted)';}else el.textContent='';
+}
+function renderCmpTbl(tbodyId,snap,after){
+  const body=document.getElementById(tbodyId);if(!body)return;
+  const keys=['mean','median','modus'],labels=['Mean','Median','Modus'];
+  let maxD=-1,maxI=-1;
+  keys.forEach((k,i)=>{if(typeof snap[k]==='number'&&typeof after[k]==='number'){const d=Math.abs(+(after[k]-snap[k]).toFixed(2));if(d>maxD){maxD=d;maxI=i;}}});
+  body.innerHTML=keys.map((k,i)=>{
+    const b=snap[k],a=after[k];let diff='—',cls='';
+    if(typeof b==='number'&&typeof a==='number'){const d=+(a-b).toFixed(2);diff=(d>0?'+':'')+d;cls=d>0?'cup':d<0?'cdn':'';}
+    const badge=i===maxI&&maxD>0?'<span class="cbadge">Paling berubah! ⚡</span>':'';
+    return `<tr${i===maxI&&maxD>0?' class="crow"':''}><td><strong>${labels[i]}</strong>${badge}</td><td>${b==null?'—':b}</td><td>${a==null?'—':a}</td><td class="${cls}">${diff}</td></tr>`;
+  }).join('');
+}
+function toggleR(id){
+  const a=document.getElementById(id),b=a?.previousElementSibling;if(!a)return;
+  const s=a.classList.toggle('show');
+  if(b&&b.classList.contains('refl-btn'))b.textContent=s?'🙈 Sembunyikan':'💡 Lihat Penjelasan';
+}
+function show(id){const e=document.getElementById(id);if(e){e.classList.add('show');if(e.style.display==='none')e.style.display='block';}}
+function hide(id){const e=document.getElementById(id);if(e){e.classList.remove('show');if(e.classList.contains('cmp')||e.classList.contains('refl')||e.classList.contains('konk'))e.style.display='none';}}
+
+
+/* ================================================================
+   SCENE 0 — WARUNG
+   ================================================================ */
+let wD=[...W_DEF],wSnap=null,wOut=new Set(),wDone=false;
+function w0init(){wD=[...W_DEF];wSnap=null;wOut=new Set();wDone=false;hide('w0cmp');hide('w0refl');hide('w0konk');const nx=document.getElementById('w0next');if(nx)nx.style.display='none';document.getElementById('w0eb').style.display='none';wR();}
+function wR(){
+  const s=calc(wD),c=document.getElementById('w0balls');
+  if(!wD.length){c.innerHTML='<span style="font-size:13px;color:var(--muted)">Belum ada data…</span>';return;}
+  const days=['Sen','Sel','Rab','Kam','Jum','Sab','Min','Fes','Fes'];
+  c.innerHTML=wD.map((v,i)=>`<div class="dball ${wOut.has(i)?'de':'dn'}" onclick="wRm(${i},event)"><div class="dball-v">${wOut.has(i)?'⚡':v}</div><div class="dball-s">${days[i]||'+'}</div></div>`).join('');
+  document.getElementById('w0cnt').textContent=`${wD.length} hari`;
+  document.getElementById('w0hint').textContent=wOut.size>0?`${wOut.size} hari festival`:'cuaca normal';
+  updSC('w0mean',s.mean,'var(--orange)',true);updSC('w0med',s.median,'var(--blue)',true);updSC('w0mod',s.modus,'var(--green)',true);
+  if(wSnap){updD('w0dmean',wSnap.mean,s.mean);updD('w0dmed',wSnap.median,s.median);renderCmpTbl('w0ctbl',wSnap,s);show('w0cmp');show('w0refl');
+    if(!wDone){wDone=true;const mD=Math.abs(+(s.mean-wSnap.mean).toFixed(2));const medD=typeof wSnap.median==='number'&&typeof s.median==='number'?Math.abs(+(s.median-wSnap.median).toFixed(2)):0;
+      document.getElementById('w0kt').innerHTML=`Festival membuat Mean penjualan berubah <span class="ks" style="background:rgba(255,140,66,.15);border:1px solid var(--orange);color:var(--orange)">${mD} porsi</span>, sedangkan Median hanya berubah <span class="ks" style="background:rgba(77,166,255,.1);border:1px solid var(--blue);color:var(--blue)">${medD} porsi</span>, dan Modus tidak berubah. <strong style="color:var(--teal)">Mean paling sensitif terhadap nilai ekstrem!</strong>`;
+      show('w0konk');const nx=document.getElementById('w0next');if(nx)nx.style.display='block';confetti(40);}
+  }
+}
+function w0se(){show('w0eb');document.getElementById('w0eb-btn').style.display='none';}
+function w0ae(){const v=parseFloat(document.getElementById('w0ei').value);if(isNaN(v))return;wSnap=calc(wD);wOut.add(wD.length);wD.push(v);document.getElementById('w0ei').value='';burst(innerWidth/2,innerHeight/3,'#ff8c42',28);setTimeout(()=>burst(innerWidth/2,innerHeight/2,'#ff8c42',16),180);wR();}
+function w0reset(){w0init();}
+function wRm(i,e){const r=e.currentTarget.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,'#ff4d6d',10);wD.splice(i,1);const nO=new Set();wOut.forEach(x=>{if(x<i)nO.add(x);else if(x>i)nO.add(x-1);});wOut=nO;if(!wOut.size){wSnap=null;hide('w0cmp');hide('w0refl');hide('w0konk');}wR();}
+
+
+/* ================================================================
+   SCENE 1 — KELAS
+   ================================================================ */
+let kD=[...K_DEF],kSnap=null,kOut=new Set(),kDone=false;
+function k0init(){kD=[...K_DEF];kSnap=null;kOut=new Set();kDone=false;hide('k0cmp');hide('k0refl');hide('k0konk');const nx=document.getElementById('k0next');if(nx)nx.style.display='none';document.getElementById('k0eb').style.display='none';kR();}
+function kR(){
+  const s=calc(kD),c=document.getElementById('k0balls');
+  if(!kD.length){c.innerHTML='<span style="font-size:13px;color:var(--muted)">Belum ada data…</span>';return;}
+  c.innerHTML=kD.map((v,i)=>`<div class="dball ${kOut.has(i)?'de':'dn'}" onclick="kRm(${i},event)"><div class="dball-v">${kOut.has(i)?'🤒':v}</div></div>`).join('');
+  document.getElementById('k0cnt').textContent=`${kD.length} siswa`;
+  updSC('k0mean',s.mean,'var(--orange)',true);updSC('k0med',s.median,'var(--blue)',true);updSC('k0mod',s.modus,'var(--green)',true);
+  if(kSnap){updD('k0dmean',kSnap.mean,s.mean);updD('k0dmed',kSnap.median,s.median);renderCmpTbl('k0ctbl',kSnap,s);show('k0cmp');show('k0refl');
+    if(!kDone){kDone=true;const mD=Math.abs(+(s.mean-kSnap.mean).toFixed(2));const medD=typeof kSnap.median==='number'&&typeof s.median==='number'?Math.abs(+(s.median-kSnap.median).toFixed(2)):0;
+      document.getElementById('k0kt').innerHTML=`Nilai Doni membuat Mean turun <span class="ks" style="background:rgba(255,140,66,.15);border:1px solid var(--orange);color:var(--orange)">${mD} poin</span>, Median hanya turun <span class="ks" style="background:rgba(77,166,255,.1);border:1px solid var(--blue);color:var(--blue)">${medD} poin</span>, Modus tetap <strong style="color:var(--green)">${s.modus}</strong>. <strong style="color:var(--teal)">Median & Modus lebih stabil!</strong>`;
+      show('k0konk');const nx=document.getElementById('k0next');if(nx)nx.style.display='block';confetti(40);}
+  }
+}
+function k0se(){show('k0eb');document.getElementById('k0eb-btn').style.display='none';}
+function k0ae(){const v=parseFloat(document.getElementById('k0ei').value);if(isNaN(v)||v<0||v>100)return;kSnap=calc(kD);kOut.add(kD.length);kD.push(v);document.getElementById('k0ei').value='';burst(innerWidth/2,innerHeight/3,'#4da6ff',28);kR();}
+function k0reset(){k0init();}
+function kRm(i,e){const r=e.currentTarget.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,'#ff4d6d',10);kD.splice(i,1);const nO=new Set();kOut.forEach(x=>{if(x<i)nO.add(x);else if(x>i)nO.add(x-1);});kOut=nO;if(!kOut.size){kSnap=null;hide('k0cmp');hide('k0refl');hide('k0konk');}kR();}
+
+
+/* ================================================================
+   SCENE 3 — CURAH HUJAN
+   ================================================================ */
+let rD=[...R_DEF],rSnap=null,rOut=new Set(),rDone=false;
+function r0init(){rD=[...R_DEF];rSnap=null;rOut=new Set();rDone=false;hide('r0cmp');hide('r0refl');hide('r0konk');const nx=document.getElementById('r0next');if(nx)nx.style.display='none';document.getElementById('r0eb').style.display='none';rR();}
+function rR(){
+  const s=calc(rD),c=document.getElementById('r0balls');
+  if(!rD.length){c.innerHTML='<span style="font-size:13px;color:var(--muted)">Belum ada data…</span>';return;}
+  const days=['Sen','Sel','Rab','Kam','Jum','Sab','Min','Badai'];
+  c.innerHTML=rD.map((v,i)=>`<div class="dball ${rOut.has(i)?'de':'dn'}" onclick="rRm(${i},event)"><div class="dball-v">${rOut.has(i)?'⛈️':v}</div><div class="dball-s">${days[i]||'+'}</div></div>`).join('');
+  document.getElementById('r0cnt').textContent=`${rD.length} hari`;
+  document.getElementById('r0hint').textContent=rOut.size>0?`${rOut.size} hari badai`:'cuaca normal';
+  updSC('r0mean',s.mean,'var(--orange)',true);updSC('r0med',s.median,'var(--blue)',true);updSC('r0mod',s.modus,'var(--green)',true);
+  if(rSnap){updD('r0dmean',rSnap.mean,s.mean);updD('r0dmed',rSnap.median,s.median);renderCmpTbl('r0ctbl',rSnap,s);show('r0cmp');show('r0refl');
+    if(!rDone){rDone=true;const mD=Math.abs(+(s.mean-rSnap.mean).toFixed(2));const medD=typeof rSnap.median==='number'&&typeof s.median==='number'?Math.abs(+(s.median-rSnap.median).toFixed(2)):0;
+      document.getElementById('r0kt').innerHTML=`Badai membuat Mean curah hujan naik <span class="ks" style="background:rgba(255,140,66,.15);border:1px solid var(--orange);color:var(--orange)">${mD} mm</span>, sedangkan Median hanya naik <span class="ks" style="background:rgba(77,166,255,.1);border:1px solid var(--blue);color:var(--blue)">${medD} mm</span>. <strong style="color:var(--teal)">Untuk prakiraan cuaca harian, Median lebih dapat diandalkan!</strong>`;
+      show('r0konk');const nx=document.getElementById('r0next');if(nx)nx.style.display='block';confetti(40);}
+  }
+}
+function r0se(){show('r0eb');document.getElementById('r0eb-btn').style.display='none';}
+function r0ae(){const v=parseFloat(document.getElementById('r0ei').value);if(isNaN(v))return;rSnap=calc(rD);rOut.add(rD.length);rD.push(v);document.getElementById('r0ei').value='';burst(innerWidth/2,innerHeight/3,'#4da6ff',28);rR();}
+function r0reset(){r0init();}
+function rRm(i,e){const r2=e.currentTarget.getBoundingClientRect();burst(r2.left+r2.width/2,r2.top+r2.height/2,'#ff4d6d',10);rD.splice(i,1);const nO=new Set();rOut.forEach(x=>{if(x<i)nO.add(x);else if(x>i)nO.add(x-1);});rOut=nO;if(!rOut.size){rSnap=null;hide('r0cmp');hide('r0refl');hide('r0konk');}rR();}
+
+
+/* ================================================================
+   SCENE 4 — LALU LINTAS
+   ================================================================ */
+let tD=[...T_DEF],tSnap=null,tOut=new Set(),tDone=false;
+function t0init(){tD=[...T_DEF];tSnap=null;tOut=new Set();tDone=false;hide('t0cmp');hide('t0refl');hide('t0konk');const nx=document.getElementById('t0next');if(nx)nx.style.display='none';document.getElementById('t0eb').style.display='none';tRender();}
+function tRender(){
+  const s=calc(tD),c=document.getElementById('t0balls');
+  if(!tD.length){c.innerHTML='<span style="font-size:13px;color:var(--muted)">Belum ada data…</span>';return;}
+  const jam=['07','08','09','12','13','16','17','18','Konser'];
+  c.innerHTML=tD.map((v,i)=>`<div class="dball ${tOut.has(i)?'de':'dn'}" onclick="tRm(${i},event)"><div class="dball-v">${tOut.has(i)?'🎪':v}</div><div class="dball-s">${jam[i]||'+'}:00</div></div>`).join('');
+  document.getElementById('t0cnt').textContent=`${tD.length} jam`;
+  document.getElementById('t0hint').textContent=tOut.size>0?`${tOut.size} jam puncak`:'lalu lintas normal';
+  updSC('t0mean',s.mean,'var(--yellow)',true);updSC('t0med',s.median,'var(--blue)',true);updSC('t0mod',s.modus,'var(--green)',true);
+  if(tSnap){updD('t0dmean',tSnap.mean,s.mean);updD('t0dmed',tSnap.median,s.median);renderCmpTbl('t0ctbl',tSnap,s);show('t0cmp');show('t0refl');
+    if(!tDone){tDone=true;const mD=Math.abs(+(s.mean-tSnap.mean).toFixed(2));const medD=typeof tSnap.median==='number'&&typeof s.median==='number'?Math.abs(+(s.median-tSnap.median).toFixed(2)):0;
+      document.getElementById('t0kt').innerHTML=`Jam konser membuat Mean volume lalu lintas naik <span class="ks" style="background:rgba(255,209,102,.15);border:1px solid var(--yellow);color:var(--yellow)">${mD} kendaraan</span>, sedangkan Median hanya naik <span class="ks" style="background:rgba(77,166,255,.1);border:1px solid var(--blue);color:var(--blue)">${medD} kendaraan</span>. <strong style="color:var(--teal)">Untuk mengatur lampu merah hari normal, gunakan Median!</strong>`;
+      show('t0konk');const nx=document.getElementById('t0next');if(nx)nx.style.display='block';confetti(40);}
+  }
+}
+function t0se(){show('t0eb');document.getElementById('t0eb-btn').style.display='none';}
+function t0ae(){const v=parseFloat(document.getElementById('t0ei').value);if(isNaN(v))return;tSnap=calc(tD);tOut.add(tD.length);tD.push(v);document.getElementById('t0ei').value='';burst(innerWidth/2,innerHeight/3,'#ffd166',28);tRender();}
+function t0reset(){t0init();}
+function tRm(i,e){const r=e.currentTarget.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,'#ff4d6d',10);tD.splice(i,1);const nO=new Set();tOut.forEach(x=>{if(x<i)nO.add(x);else if(x>i)nO.add(x-1);});tOut=nO;if(!tOut.size){tSnap=null;hide('t0cmp');hide('t0refl');hide('t0konk');}tRender();}
+
+/* ── Inisialisasi semua scene ── */
+w0init();
+k0init();
+r0init();
+t0init();
+</script>
+</body>
+</html>

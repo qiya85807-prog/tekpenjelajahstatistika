@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatXplore — Latihan & Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   LATIHAN & GAME — CSS
+   Semua class latihan baru diawali "lx-"
+   agar tidak bentrok dengan style lain
+   ════════════════════════════════════════ */
+:root{
+  --bg:#060e1a;--card:#0d1f35;--card2:#122640;
+  --border:rgba(255,255,255,.06);
+  --teal:#00e5cc;--orange:#ff8c42;--yellow:#ffd166;
+  --blue:#4da6ff;--green:#06d6a0;--purple:#c77dff;
+  --red:#ff4d6d;--text:#dde8f5;--muted:#3d5a7a;--white:#f0f8ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,229,204,.04),transparent 60%),radial-gradient(ellipse 50% 30% at 80% 70%,rgba(255,140,66,.04),transparent 60%);pointer-events:none;z-index:0;}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(6,14,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;}
+.logo{font-family:'Fredoka One',sans-serif;font-size:20px;background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo span{background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:flex;gap:3px;}
+.nlink{padding:5px 9px;border-radius:7px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s;text-decoration:none;display:flex;align-items:center;}
+.nlink:hover{color:var(--teal);background:rgba(0,229,204,.08);}
+.nlink.here{color:var(--yellow);background:rgba(255,209,102,.08);}
+
+/* Badge bintang total */
+.star-badge{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);color:var(--yellow);padding:4px 11px;border-radius:100px;font-weight:900;font-size:11px;}
+
+/* ── Layout ── */
+.page{padding-top:56px;min-height:100vh;position:relative;z-index:1;}
+.pw-sm{max-width:660px;margin:0 auto;padding:18px 14px 60px;}
+.ph{margin-bottom:18px;}
+.ph h2{font-family:'Fredoka One',sans-serif;font-size:24px;color:var(--white);margin-bottom:2px;}
+.ph p{font-size:13px;color:var(--muted);}
+
+/* ════════════════════════════════
+   PETUNJUK PENGGUNAAN
+   ════════════════════════════════ */
+.petunjuk-box{
+  background:linear-gradient(135deg,rgba(0,229,204,.06),rgba(77,166,255,.04));
+  border:1px solid rgba(0,229,204,.18);border-radius:18px;
+  padding:18px;margin-bottom:16px;position:relative;overflow:hidden;
+}
+.petunjuk-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple),var(--orange),var(--yellow));
+}
+.ptitle{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:11px;
+  color:var(--teal);text-transform:uppercase;letter-spacing:.09em;margin-bottom:13px;
+  display:flex;align-items:center;gap:7px;
+}
+.psteps{display:flex;flex-direction:column;gap:10px;}
+.pstep{display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--text);line-height:1.6;}
+.pnum{
+  min-width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg);font-weight:900;font-size:11px;font-family:'Nunito',sans-serif;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.pstep strong{color:var(--white);}
+.pstep em{color:var(--muted);font-style:normal;}
+
+/* ════════════════════════════════
+   SELECTOR MODE (Latihan / Game)
+   ════════════════════════════════ */
+.mode-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.mcard{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:16px;padding:16px;cursor:pointer;text-align:center;
+  transition:all .25s;
+}
+.mcard:hover{transform:translateY(-3px);border-color:var(--teal);}
+.mcard.sel{border-color:var(--teal);background:rgba(0,229,204,.07);}
+.mcard-icon{font-size:30px;margin-bottom:7px;}
+.mcard-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;color:var(--white);margin-bottom:2px;}
+.mcard-desc{font-size:11px;color:var(--muted);}
+
+/* ════════════════════════════════
+   PANEL MANAJEMEN SOAL (CRUD)
+   ════════════════════════════════ */
+.soal-panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:18px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.soal-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--orange),transparent);opacity:.8;
+}
+.panel-ttl{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:11px;
+  color:var(--white);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:14px;display:flex;align-items:center;gap:7px;
+}
+.cdot{width:7px;height:7px;border-radius:50%;background:var(--c-acc,var(--orange));box-shadow:0 0 6px var(--c-acc,var(--orange));}
+
+/* Baris tombol aksi CRUD */
+.mgmt-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.lx-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 16px;border-radius:10px;border:none;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  cursor:pointer;transition:all .2s;
+}
+.lx-btn:active{transform:scale(.95);}
+.lx-btn-add  {background:linear-gradient(135deg,var(--orange),var(--yellow));color:var(--bg);}
+.lx-btn-add:hover{box-shadow:0 4px 16px rgba(255,140,66,.4);transform:translateY(-2px);}
+.lx-btn-start{background:linear-gradient(135deg,var(--teal),var(--blue));color:var(--bg);}
+.lx-btn-start:hover{box-shadow:0 4px 16px rgba(0,229,204,.35);transform:translateY(-2px);}
+.lx-btn-reset{background:var(--card2);border:1px solid var(--border);color:var(--muted);}
+.lx-btn-reset:hover{border-color:var(--red);color:var(--red);}
+
+/* Daftar soal */
+#lx-soal-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.lx-soal-item{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;padding:12px 14px;transition:border-color .2s;
+  animation:pgIn .25s ease both;
+}
+.lx-soal-item:hover{border-color:rgba(0,229,204,.18);}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.lx-si-meta{flex:1;min-width:0;}
+.lx-si-num{font-size:10px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.lx-si-q{font-size:13px;color:var(--white);font-weight:600;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.lx-badge{display:inline-block;padding:2px 9px;border-radius:100px;font-size:10px;font-weight:800;margin-top:5px;}
+.lx-badge-pg {background:rgba(77,166,255,.12);color:var(--blue);}
+.lx-badge-isi{background:rgba(6,214,160,.12);color:var(--green);}
+.lx-si-btns{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+.lx-sbtn{padding:5px 10px;border-radius:7px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .18s;}
+.lx-sbtn-edit{background:rgba(77,166,255,.12);color:var(--blue);}
+.lx-sbtn-edit:hover{background:rgba(77,166,255,.22);}
+.lx-sbtn-del{background:rgba(255,77,109,.1);color:var(--red);}
+.lx-sbtn-del:hover{background:rgba(255,77,109,.2);}
+.lx-empty{text-align:center;padding:26px;color:var(--muted);font-size:13px;line-height:1.8;}
+.lx-empty-icon{font-size:30px;display:block;margin-bottom:8px;}
+
+/* ════════════════════════════════
+   TAMPILAN PENGERJAAN SOAL
+   ════════════════════════════════ */
+#lx-pengerjaan{display:none;}
+.lx-btn-back{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 15px;border-radius:9px;background:var(--card2);
+  border:1px solid var(--border);color:var(--muted);
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  cursor:pointer;transition:all .2s;margin-bottom:14px;
+}
+.lx-btn-back:hover{border-color:var(--teal);color:var(--teal);}
+
+/* Progress bar pengerjaan */
+.lx-prog-wrap{margin-bottom:14px;}
+.lx-prog-bar{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:5px;}
+.lx-prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:3px;transition:width .35s ease;}
+.lx-prog-txt{font-size:11px;color:var(--muted);font-family:monospace;font-weight:700;}
+
+/* Kartu satu soal */
+.lx-qcard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:18px;margin-bottom:12px;
+  animation:pgIn .3s ease both;
+}
+.lx-qnum{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.lx-qtxt{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--white);line-height:1.5;margin-bottom:12px;}
+
+/* Pilihan jawaban PG */
+.lx-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:400px){.lx-opts{grid-template-columns:1fr;}}
+.lx-opt{
+  padding:11px 13px;border-radius:10px;text-align:left;
+  border:1.5px solid var(--border);background:var(--card2);
+  color:var(--text);font-weight:700;font-size:13px;
+  cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.lx-opt:hover{border-color:var(--teal);color:var(--teal);}
+.lx-opt.lx-sel{border-color:var(--blue);background:rgba(77,166,255,.12);color:var(--blue);}
+
+/* Input isian singkat */
+.lx-isian{
+  width:100%;padding:11px 14px;background:var(--card2);
+  border:1.5px solid var(--border);border-radius:10px;
+  color:var(--white);font-family:inherit;font-size:14px;
+  outline:none;transition:border-color .2s;
+}
+.lx-isian:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,204,.08);}
+
+/* Tombol Submit Jawaban */
+.lx-btn-submit{
+  width:100%;padding:14px;margin-top:4px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg);border:none;border-radius:13px;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;
+  cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,229,204,.18);
+}
+.lx-btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,229,204,.32);}
+
+/* ════════════════════════════════
+   TAMPILAN HASIL & REVIEW
+   ════════════════════════════════ */
+#lx-hasil{display:none;}
+.lx-skor-banner{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:24px;text-align:center;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.lx-skor-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple));}
+.lx-skor-num{font-family:'Fredoka One',sans-serif;font-size:62px;color:var(--teal);line-height:1;}
+.lx-skor-dari{font-size:12px;color:var(--muted);margin-top:2px;margin-bottom:8px;}
+.lx-skor-msg{font-size:14px;font-weight:700;color:var(--white);}
+.lx-summary{display:flex;gap:10px;justify-content:center;margin-top:14px;}
+.lx-sum-item{flex:1;max-width:100px;padding:10px;border-radius:12px;text-align:center;}
+.lx-sum-benar{background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.25);}
+.lx-sum-salah{background:rgba(255,77,109,.07);border:1px solid rgba(255,77,109,.18);}
+.lx-sum-n{font-family:'Fredoka One',sans-serif;font-size:26px;}
+.lx-sum-benar .lx-sum-n{color:var(--green);}
+.lx-sum-salah .lx-sum-n{color:var(--red);}
+.lx-sum-lbl{font-size:10px;color:var(--muted);font-weight:800;}
+
+/* Kartu review tiap soal */
+.lx-rev-item{border-radius:13px;padding:14px;margin-bottom:10px;border:1px solid;animation:pgIn .3s ease both;}
+.lx-rev-item.lx-benar{background:rgba(6,214,160,.06);border-color:rgba(6,214,160,.22);}
+.lx-rev-item.lx-salah{background:rgba(255,77,109,.05);border-color:rgba(255,77,109,.18);}
+.lx-rev-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.lx-rev-ikon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.lx-benar .lx-rev-ikon{background:var(--green);color:var(--bg);}
+.lx-salah .lx-rev-ikon{background:var(--red);color:#fff;}
+.lx-rev-num{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;}
+.lx-benar .lx-rev-num{color:var(--green);}
+.lx-salah .lx-rev-num{color:var(--red);}
+.lx-rev-qtxt{font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px;line-height:1.5;}
+.lx-rev-ans{font-size:12px;line-height:1.7;}
+.lx-rev-ans .lx-albl{color:var(--muted);font-weight:800;}
+.lx-rev-ans .lx-abenar{color:var(--green);font-weight:700;}
+.lx-rev-ans .lx-asalah{color:var(--red);}
+
+/* Tombol aksi setelah hasil */
+.sc-btns{display:flex;gap:8px;margin-top:4px;}
+.btn-retry{flex:1;background:linear-gradient(135deg,var(--teal),var(--blue));color:var(--bg);border:none;padding:12px;border-radius:11px;font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;cursor:pointer;transition:all .25s;}
+.btn-retry:hover{transform:translateY(-2px);}
+.btn-bk{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:12px;border-radius:11px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+.btn-bk:hover{color:var(--text);}
+
+/* ════════════════════════════════
+   MODAL TAMBAH / EDIT SOAL
+   ════════════════════════════════ */
+.lx-modal-ov{
+  position:fixed;inset:0;z-index:900;
+  background:rgba(3,8,20,.85);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:14px;
+}
+.lx-modal-ov.open{display:flex;animation:pgIn .2s ease;}
+.lx-modal{
+  background:var(--card);border:1px solid rgba(0,229,204,.22);
+  border-radius:20px;padding:22px 20px;
+  width:100%;max-width:500px;max-height:92vh;overflow-y:auto;
+  box-shadow:0 28px 60px rgba(0,0,0,.65);
+  animation:slideUp .28s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.lx-modal::-webkit-scrollbar{width:4px;}
+.lx-modal::-webkit-scrollbar-thumb{background:rgba(0,229,204,.2);border-radius:2px;}
+.lx-modal-ttl{font-family:'Fredoka One',sans-serif;font-size:18px;color:var(--white);margin-bottom:18px;display:flex;align-items:center;gap:9px;}
+.lx-field{margin-bottom:14px;}
+.lx-field label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.lx-field input[type=text],
+.lx-field textarea,
+.lx-field select{
+  width:100%;padding:10px 13px;background:var(--card2);
+  border:1.5px solid var(--border);border-radius:10px;
+  color:var(--white);font-family:inherit;font-size:13px;
+  outline:none;transition:border-color .2s;resize:vertical;
+}
+.lx-field input[type=text]:focus,
+.lx-field textarea:focus,
+.lx-field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,204,.08);}
+.lx-field select{cursor:pointer;background-color:var(--card2);}
+.lx-field select option{background:var(--card2);color:var(--text);}
+.lx-opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.lx-opt-row{display:flex;align-items:center;gap:7px;}
+.lx-opt-lbl{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:var(--card2);border:1px solid var(--border);
+  color:var(--teal);font-weight:900;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+/* Toggle tipe PG / Isian */
+.lx-tipe-row{display:flex;gap:7px;margin-bottom:3px;}
+.lx-tipe-btn{
+  flex:1;padding:9px;border-radius:9px;
+  border:1.5px solid var(--border);background:var(--card2);
+  color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  cursor:pointer;transition:all .2s;
+}
+.lx-tipe-btn.on{border-color:var(--teal);background:rgba(0,229,204,.1);color:var(--teal);}
+/* Tombol di modal */
+.lx-modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.lx-btn-batal{padding:10px 18px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s;}
+.lx-btn-batal:hover{border-color:var(--red);color:var(--red);}
+.lx-btn-simpan{padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--blue));border:none;color:var(--bg);font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;cursor:pointer;transition:all .2s;}
+.lx-btn-simpan:hover{box-shadow:0 4px 16px rgba(0,229,204,.3);transform:translateY(-1px);}
+
+/* ════════════════════════════════
+   SPEED GAME
+   ════════════════════════════════ */
+.timer-bar{height:6px;background:var(--card2);border-radius:3px;margin-bottom:14px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:3px;transition:width 1s linear;}
+.game-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;}
+.game-q{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--white);line-height:1.5;margin-bottom:12px;}
+.game-data{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+.gdc,.gn{background:var(--card2);border:1.5px solid var(--border);padding:5px 11px;border-radius:7px;font-family:monospace;font-size:13px;font-weight:700;color:var(--text);}
+.ge{border-color:var(--orange);color:var(--orange);background:rgba(255,140,66,.08);}
+.game-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.go{padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:all .18s;}
+.go:hover:not(:disabled){border-color:var(--yellow);color:var(--yellow);}
+.go:disabled{cursor:default;}
+.go.gok{border-color:var(--teal);background:rgba(0,229,204,.12);color:var(--teal);}
+.go.gno{border-color:var(--red);background:rgba(255,77,109,.08);color:var(--red);}
+.game-fb{border-radius:10px;padding:10px 13px;font-size:13px;display:none;margin-top:6px;}
+.game-fb.ok.show{display:block;background:rgba(0,229,204,.07);border:1px solid rgba(0,229,204,.2);color:var(--teal);animation:pgIn .3s ease;}
+.game-fb.no.show{display:block;background:rgba(255,77,109,.06);border:1px solid rgba(255,77,109,.2);color:#fca5a5;animation:pgIn .3s ease;}
+.gfb-step{font-family:monospace;font-size:10px;color:#94a3b8;margin-top:6px;white-space:pre-wrap;}
+
+/* Kartu skor */
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;text-align:center;}
+.sc-emoji{font-size:52px;margin-bottom:8px;}
+.sc-num{font-family:'Fredoka One',sans-serif;font-size:48px;color:var(--teal);line-height:1;}
+.sc-of{font-size:13px;color:var(--muted);margin-bottom:8px;}
+.sc-msg{font-size:14px;color:var(--text);font-weight:700;margin-bottom:16px;}
+.sc-recap{background:rgba(0,0,0,.2);border-radius:11px;padding:14px;margin-bottom:16px;text-align:left;}
+.sc-rtl{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.ritem{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted);}
+.ritem:last-child{border-bottom:none;}
+.rok{color:var(--teal);font-weight:800;}
+.rno{color:var(--red);font-weight:800;}
+
+/* Toast notifikasi */
+#lx-toast{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:rgba(0,229,204,.1);border:1px solid rgba(0,229,204,.28);
+  color:var(--teal);padding:9px 20px;border-radius:100px;
+  font-size:13px;font-weight:700;z-index:9999;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  opacity:0;pointer-events:none;white-space:nowrap;
+  backdrop-filter:blur(12px);font-family:'Nunito',sans-serif;
+}
+#lx-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* Partikel */
+#particles{position:fixed;inset:0;z-index:100;pointer-events:none;}
+#confettiC{position:fixed;inset:0;z-index:101;pointer-events:none;}
+.star-fly{position:fixed;font-size:22px;z-index:102;pointer-events:none;animation:starFly 1.2s ease-out forwards;}
+@keyframes starFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<canvas id="confettiC"></canvas>
+<div id="lx-toast"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Stat<span>Xplore</span></div>
+  <div class="nav-links">
+    <a class="nlink" href="01-beranda.html">🏠</a>
+    <a class="nlink" href="02-cerita.html">📖</a>
+    <a class="nlink" href="03-materi.html">📚</a>
+    <a class="nlink" href="04-simulasi.html">🔬</a>
+    <a class="nlink here" href="05-latihan.html">🎮 Latihan</a>
+    <a class="nlink" href="06-developer.html">👤</a>
+  </div>
+  <div class="star-badge" id="starBadge">0 ⭐</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     HALAMAN LATIHAN & GAME
+     ═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="pw-sm">
+    <div class="ph">
+      <h2>🎮 Latihan & Game</h2>
+      <p>Pilih mode, kelola soal, kerjakan, dan lihat skor akhirmu!</p>
+    </div>
+
+    <!-- Pilih mode: Latihan Soal atau Speed Game -->
+    <div class="mode-sel">
+      <div class="mcard sel" id="mc-quiz" onclick="setMode('quiz')">
+        <div class="mcard-icon">📝</div>
+        <div class="mcard-title">Latihan Soal</div>
+        <div class="mcard-desc">CRUD soal bebas · submit · lihat skor detail</div>
+      </div>
+      <div class="mcard" id="mc-game" onclick="setMode('game')">
+        <div class="mcard-icon">⏱️</div>
+        <div class="mcard-title">Speed Game</div>
+        <div class="mcard-desc">Timer 20 detik · jawab cepat · kumpulkan ⭐</div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         MODE LATIHAN SOAL
+         ══════════════════════════════════════ -->
+    <div id="quizMode">
+
+      <!-- PETUNJUK PENGGUNAAN -->
+      <div class="petunjuk-box" id="lx-petunjuk">
+        <div class="ptitle">💡 Petunjuk Penggunaan</div>
+        <div class="psteps">
+          <div class="pstep"><div class="pnum">1</div><div><strong>Tambah Soal</strong> — klik <em style="color:var(--orange);font-weight:800">➕ Tambah Soal</em>, pilih tipe PG atau isian, isi pertanyaan & kunci, lalu simpan.</div></div>
+          <div class="pstep"><div class="pnum">2</div><div><strong>Edit atau Hapus</strong> — tiap soal punya tombol <em style="color:var(--blue);font-weight:800">✏️ Edit</em> dan <em style="color:var(--red);font-weight:800">🗑️ Hapus</em>. Soal tersimpan otomatis di browser.</div></div>
+          <div class="pstep"><div class="pnum">3</div><div><strong>Mulai Latihan</strong> — klik <em style="color:var(--teal);font-weight:800">▶ Mulai Latihan</em>. Semua soal tampil sekaligus — pilih jawaban PG atau ketik jawaban isian.</div></div>
+          <div class="pstep"><div class="pnum">4</div><div><strong>Submit & Hasil</strong> — klik <em style="color:var(--teal);font-weight:800">✅ Submit Jawaban</em>. Skor dan review tiap soal langsung muncul.</div></div>
+          <div class="pstep"><div class="pnum">5</div><div><strong>Data tersimpan</strong> — soal disimpan di <em style="color:var(--white);font-weight:700">localStorage</em> browser, tidak hilang walaupun halaman di-refresh.</div></div>
+        </div>
+      </div>
+
+      <!-- PANEL MANAJEMEN SOAL -->
+      <div class="soal-panel" id="lx-panel-mgmt">
+        <div class="panel-ttl">
+          <div class="cdot" style="--c-acc:var(--orange)"></div>
+          Daftar Soal Latihan
+        </div>
+        <div class="mgmt-row">
+          <button class="lx-btn lx-btn-add"   onclick="lxBukaModal()">➕ Tambah Soal</button>
+          <button class="lx-btn lx-btn-start" onclick="lxMulaiLatihan()">▶ Mulai Latihan</button>
+          <button class="lx-btn lx-btn-reset" onclick="lxResetSemua()">🗑️ Reset</button>
+        </div>
+        <ul id="lx-soal-list"></ul>
+      </div>
+
+      <!-- TAMPILAN PENGERJAAN -->
+      <div id="lx-pengerjaan">
+        <button class="lx-btn-back" onclick="lxKeMgmt()">← Kembali ke Daftar Soal</button>
+        <div class="lx-prog-wrap">
+          <div class="lx-prog-bar"><div class="lx-prog-fill" id="lx-prog-fill" style="width:0%"></div></div>
+          <div class="lx-prog-txt" id="lx-prog-txt">0 / 0 soal dijawab</div>
+        </div>
+        <div id="lx-soal-container"></div>
+        <button class="lx-btn-submit" onclick="lxSubmit()">✅ Submit Jawaban</button>
+      </div>
+
+      <!-- TAMPILAN HASIL -->
+      <div id="lx-hasil">
+        <div class="lx-skor-banner">
+          <div class="lx-skor-num"  id="lx-skor-num">0</div>
+          <div class="lx-skor-dari" id="lx-skor-dari">Skor Akhir</div>
+          <div class="lx-skor-msg"  id="lx-skor-msg"></div>
+          <div class="lx-summary">
+            <div class="lx-sum-item lx-sum-benar"><div class="lx-sum-n" id="lx-jml-benar">0</div><div class="lx-sum-lbl">✅ Benar</div></div>
+            <div class="lx-sum-item lx-sum-salah"><div class="lx-sum-n" id="lx-jml-salah">0</div><div class="lx-sum-lbl">❌ Salah</div></div>
+          </div>
+        </div>
+        <div id="lx-review-box"></div>
+        <div class="sc-btns">
+          <button class="btn-retry" onclick="lxUlangi()">🔄 Ulangi</button>
+          <button class="btn-bk"    onclick="lxKeMgmt()">← Kelola Soal</button>
+        </div>
+      </div>
+
+    </div><!-- /quizMode -->
+
+
+    <!-- ══════════════════════════════════════
+         MODE SPEED GAME
+         ══════════════════════════════════════ -->
+    <div id="gameMode" style="display:none">
+      <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+      <div style="display:flex;gap:5px;justify-content:center;margin-bottom:14px" id="gSteps"></div>
+      <div class="game-card" id="gameCard">
+        <div class="game-q"    id="gQ"></div>
+        <div class="game-data" id="gData"></div>
+        <div class="game-opts" id="gOpts"></div>
+        <div class="game-fb"   id="gFb"></div>
+      </div>
+      <div id="gameScore" style="display:none">
+        <div class="score-card">
+          <div class="sc-emoji" id="gsE"></div>
+          <div class="sc-num"   id="gsN"></div>
+          <div class="sc-of"    id="gsOf"></div>
+          <div class="sc-msg"   id="gsM"></div>
+          <div class="sc-recap"><div class="sc-rtl">Rekap Jawaban</div><div id="gsR"></div></div>
+          <div class="sc-btns">
+            <button class="btn-retry" onclick="initGame()">🔄 Main Lagi!</button>
+            <a class="btn-bk" href="01-beranda.html">🏠 Beranda</a>
+          </div>
+        </div>
+      </div>
+    </div><!-- /gameMode -->
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL TAMBAH / EDIT SOAL
+     ══════════════════════════════════════ -->
+<div class="lx-modal-ov" id="lx-modal-ov" onclick="lxTutupOv(event)">
+  <div class="lx-modal" id="lx-modal-box">
+    <div class="lx-modal-ttl" id="lx-modal-ttl"><span>➕</span> Tambah Soal Baru</div>
+    <input type="hidden" id="lx-edit-idx" value="-1">
+
+    <!-- Tipe soal -->
+    <div class="lx-field">
+      <label>Tipe Soal</label>
+      <div class="lx-tipe-row">
+        <button class="lx-tipe-btn on" id="lx-tbtn-pg"  onclick="lxSetTipe('pg')">🔘 Pilihan Ganda</button>
+        <button class="lx-tipe-btn"    id="lx-tbtn-isi" onclick="lxSetTipe('isi')">✏️ Isian Singkat</button>
+      </div>
+      <input type="hidden" id="lx-tipe" value="pg">
+    </div>
+
+    <!-- Pertanyaan -->
+    <div class="lx-field">
+      <label>Pertanyaan *</label>
+      <textarea id="lx-pertanyaan" rows="3" placeholder="Tulis pertanyaan di sini…"></textarea>
+    </div>
+
+    <!-- Area PG -->
+    <div id="lx-area-pg">
+      <div class="lx-field">
+        <label>Pilihan Jawaban</label>
+        <div class="lx-opts-grid">
+          <div class="lx-opt-row"><div class="lx-opt-lbl">A</div><input type="text" id="lx-opsi-a" placeholder="Pilihan A"></div>
+          <div class="lx-opt-row"><div class="lx-opt-lbl">B</div><input type="text" id="lx-opsi-b" placeholder="Pilihan B"></div>
+          <div class="lx-opt-row"><div class="lx-opt-lbl">C</div><input type="text" id="lx-opsi-c" placeholder="Pilihan C"></div>
+          <div class="lx-opt-row"><div class="lx-opt-lbl">D</div><input type="text" id="lx-opsi-d" placeholder="Pilihan D"></div>
+        </div>
+      </div>
+      <div class="lx-field">
+        <label>Kunci Jawaban *</label>
+        <select id="lx-kunci-pg">
+          <option value="">— Pilih jawaban yang benar —</option>
+          <option value="a">A</option><option value="b">B</option>
+          <option value="c">C</option><option value="d">D</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Area Isian -->
+    <div id="lx-area-isi" style="display:none">
+      <div class="lx-field">
+        <label>Jawaban Benar *</label>
+        <input type="text" id="lx-kunci-isi" placeholder="Ketik jawaban yang benar…">
+      </div>
+    </div>
+
+    <div class="lx-modal-footer">
+      <button class="lx-btn-batal"  onclick="lxTutupModal()">Batal</button>
+      <button class="lx-btn-simpan" onclick="lxSimpanSoal()">💾 Simpan Soal</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ════════════════════════════════════════════
+   LATIHAN & GAME — JavaScript Lengkap
+   ════════════════════════════════════════════ */
+
+/* ── Partikel ledak ── */
+const pC = document.getElementById('particles'), pX = pC.getContext('2d');
+let pA = [];
+function resP(){ pC.width = innerWidth; pC.height = innerHeight; }
+resP(); window.addEventListener('resize', resP);
+function burst(x, y, col, n = 14) {
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI*2/n)*i + Math.random()*.5, s = 2+Math.random()*5;
+    pA.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-2, r:2+Math.random()*3, col, al:1, dec:.025+Math.random()*.015 });
+  }
+}
+function animP() {
+  pX.clearRect(0,0,pC.width,pC.height); pA = pA.filter(p=>p.al>0);
+  pA.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.12; p.al-=p.dec; pX.beginPath(); pX.arc(p.x,p.y,p.r,0,Math.PI*2); pX.fillStyle=p.col+Math.floor(p.al*255).toString(16).padStart(2,'0'); pX.fill(); });
+  requestAnimationFrame(animP);
+}
+animP();
+
+/* ── Konfeti ── */
+const cC = document.getElementById('confettiC'), cX = cC.getContext('2d');
+let cA = [];
+function resC(){ cC.width = innerWidth; cC.height = innerHeight; }
+resC(); window.addEventListener('resize', resC);
+function confetti(n=40) {
+  const cols=['#00e5cc','#ff8c42','#ffd166','#4da6ff','#06d6a0','#c77dff'];
+  for(let i=0;i<n;i++) cA.push({x:Math.random()*cC.width,y:-10,vx:(Math.random()-.5)*4,vy:3+Math.random()*4,r:4+Math.random()*5,col:cols[Math.floor(Math.random()*cols.length)],rot:Math.random()*360,vr:(Math.random()-.5)*8,al:1});
+}
+function animC() {
+  cX.clearRect(0,0,cC.width,cC.height); cA=cA.filter(p=>p.al>0);
+  cA.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;if(p.y>cC.height*.7)p.al-=.012; cX.save();cX.translate(p.x,p.y);cX.rotate(p.rot*Math.PI/180);cX.globalAlpha=p.al;cX.fillStyle=p.col;cX.fillRect(-p.r,-p.r/2,p.r*2,p.r);cX.restore(); });
+  requestAnimationFrame(animC);
+}
+animC();
+
+/* ── Bintang terbang ── */
+let totalStars = parseInt(localStorage.getItem('sx_stars')||'0');
+document.getElementById('starBadge').textContent = totalStars + ' ⭐';
+function addStars(n) {
+  totalStars += n;
+  localStorage.setItem('sx_stars', totalStars);
+  document.getElementById('starBadge').textContent = totalStars + ' ⭐';
+  for(let i=0;i<Math.min(n,3);i++){
+    const el=document.createElement('div'); el.className='star-fly'; el.textContent='⭐';
+    const dx=(Math.random()-.5)*200, dy=-80-Math.random()*100;
+    el.style.cssText=`left:${innerWidth/2}px;top:58px;--dx:${dx}px;--dy:${dy}px;animation-delay:${i*.09}s`;
+    document.body.appendChild(el); setTimeout(()=>el.remove(),1600+i*100);
+  }
+}
+
+/* ── Toast ── */
+let lxToastTmr;
+function lxToast(msg) {
+  const el=document.getElementById('lx-toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(lxToastTmr); lxToastTmr=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+/* ── Escape HTML ── */
+function lxEsc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Mode selector ── */
+let lMode = 'quiz';
+function setMode(m) {
+  lMode = m;
+  document.getElementById('mc-quiz').classList.toggle('sel', m==='quiz');
+  document.getElementById('mc-game').classList.toggle('sel', m==='game');
+  document.getElementById('quizMode').style.display = m==='quiz' ? 'block' : 'none';
+  document.getElementById('gameMode').style.display = m==='game' ? 'block' : 'none';
+  if(m==='game') initGame();
+}
+
+
+/* ════════════════════════════════════════════
+   LATIHAN SOAL — CRUD + localStorage
+   ════════════════════════════════════════════ */
+
+const LX_KEY = 'statxplore_soal_v1';
+
+/* Soal default saat pertama dibuka */
+const LX_DEFAULT = [
+  { tipe:'pg', q:'Nilai ulangan 5 siswa: 70,75,80,65,90. Berapa mean-nya?',         opsi:{a:'74',b:'76',c:'78',d:'80'}, kunci:'b' },
+  { tipe:'pg', q:'Data diurutkan: 60,65,70,75,80. Berapa mediannya?',                opsi:{a:'65',b:'70',c:'72',d:'75'}, kunci:'b' },
+  { tipe:'pg', q:'Data: 12,15,13,15,14,15,11. Berapakah modusnya?',                  opsi:{a:'13',b:'14',c:'15',d:'12'}, kunci:'c' },
+  { tipe:'pg', q:'Ukuran pemusatan yang PALING terpengaruh nilai ekstrem adalah…',   opsi:{a:'Median',b:'Modus',c:'Mean',d:'Sama'}, kunci:'c' },
+  { tipe:'isi', q:'Nilai tengah setelah data diurutkan disebut…',                    opsi:null, kunci:'median' },
+];
+
+let lxSoalList = [], lxJawaban = {};
+
+/* Muat dari localStorage */
+function lxMuat() {
+  try {
+    const raw = localStorage.getItem(LX_KEY);
+    lxSoalList = raw ? JSON.parse(raw) : LX_DEFAULT.map(s=>({...s,opsi:s.opsi?{...s.opsi}:null}));
+  } catch(e) { lxSoalList = LX_DEFAULT.map(s=>({...s})); }
+}
+
+/* Simpan ke localStorage */
+function lxSimpanLS() {
+  try { localStorage.setItem(LX_KEY, JSON.stringify(lxSoalList)); } catch(e){}
+}
+
+/* Render daftar soal */
+function lxRenderDaftar() {
+  const ul = document.getElementById('lx-soal-list');
+  if(!lxSoalList.length) {
+    ul.innerHTML = `<li class="lx-empty"><span class="lx-empty-icon">📭</span>Belum ada soal. Klik <b style="color:var(--orange)">➕ Tambah Soal</b> untuk mulai!</li>`;
+    return;
+  }
+  ul.innerHTML = lxSoalList.map((s,i) => `
+    <li class="lx-soal-item" style="animation-delay:${i*.04}s">
+      <div class="lx-si-meta">
+        <div class="lx-si-num">Soal ${i+1}</div>
+        <div class="lx-si-q">${lxEsc(s.q)}</div>
+        <span class="lx-badge ${s.tipe==='pg'?'lx-badge-pg':'lx-badge-isi'}">${s.tipe==='pg'?'🔘 PG':'✏️ Isian'}</span>
+      </div>
+      <div class="lx-si-btns">
+        <button class="lx-sbtn lx-sbtn-edit" onclick="lxBukaEdit(${i})">✏️</button>
+        <button class="lx-sbtn lx-sbtn-del"  onclick="lxHapus(${i})">🗑️</button>
+      </div>
+    </li>`).join('');
+}
+
+/* Buka modal tambah */
+function lxBukaModal() {
+  lxResetModal(); document.getElementById('lx-edit-idx').value = '-1';
+  document.getElementById('lx-modal-ttl').innerHTML = '<span>➕</span> Tambah Soal Baru';
+  document.getElementById('lx-modal-ov').classList.add('open');
+}
+
+/* Buka modal edit */
+function lxBukaEdit(idx) {
+  const s = lxSoalList[idx]; if(!s) return;
+  lxResetModal(); document.getElementById('lx-edit-idx').value = idx;
+  document.getElementById('lx-modal-ttl').innerHTML = `<span>✏️</span> Edit Soal ${idx+1}`;
+  document.getElementById('lx-pertanyaan').value = s.q;
+  lxSetTipe(s.tipe);
+  if(s.tipe==='pg' && s.opsi){
+    document.getElementById('lx-opsi-a').value = s.opsi.a||'';
+    document.getElementById('lx-opsi-b').value = s.opsi.b||'';
+    document.getElementById('lx-opsi-c').value = s.opsi.c||'';
+    document.getElementById('lx-opsi-d').value = s.opsi.d||'';
+    document.getElementById('lx-kunci-pg').value = s.kunci;
+  } else { document.getElementById('lx-kunci-isi').value = s.kunci; }
+  document.getElementById('lx-modal-ov').classList.add('open');
+}
+
+function lxTutupModal() { document.getElementById('lx-modal-ov').classList.remove('open'); }
+function lxTutupOv(e) { if(e.target===document.getElementById('lx-modal-ov')) lxTutupModal(); }
+
+function lxResetModal() {
+  ['lx-pertanyaan','lx-opsi-a','lx-opsi-b','lx-opsi-c','lx-opsi-d','lx-kunci-isi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const kp=document.getElementById('lx-kunci-pg'); if(kp) kp.value='';
+  lxSetTipe('pg');
+}
+
+function lxSetTipe(t) {
+  document.getElementById('lx-tipe').value = t;
+  document.getElementById('lx-tbtn-pg').classList.toggle('on',  t==='pg');
+  document.getElementById('lx-tbtn-isi').classList.toggle('on', t==='isi');
+  document.getElementById('lx-area-pg').style.display  = t==='pg'  ? 'block':'none';
+  document.getElementById('lx-area-isi').style.display = t==='isi' ? 'block':'none';
+}
+
+function lxSimpanSoal() {
+  const q = document.getElementById('lx-pertanyaan').value.trim();
+  const t = document.getElementById('lx-tipe').value;
+  const idx = parseInt(document.getElementById('lx-edit-idx').value);
+  if(!q) { lxToast('⚠️ Pertanyaan tidak boleh kosong!'); return; }
+  let soal;
+  if(t==='pg'){
+    const opsi = { a:document.getElementById('lx-opsi-a').value.trim(), b:document.getElementById('lx-opsi-b').value.trim(), c:document.getElementById('lx-opsi-c').value.trim(), d:document.getElementById('lx-opsi-d').value.trim() };
+    const kunci = document.getElementById('lx-kunci-pg').value;
+    if(Object.values(opsi).filter(v=>v).length < 2){ lxToast('⚠️ Isi minimal 2 pilihan!'); return; }
+    if(!kunci){ lxToast('⚠️ Pilih kunci jawaban!'); return; }
+    soal = { tipe:'pg', q, opsi, kunci };
+  } else {
+    const kunci = document.getElementById('lx-kunci-isi').value.trim();
+    if(!kunci){ lxToast('⚠️ Isi jawaban benar!'); return; }
+    soal = { tipe:'isi', q, opsi:null, kunci };
+  }
+  if(idx===-1){ lxSoalList.push(soal); lxToast('✅ Soal ditambahkan!'); }
+  else { lxSoalList[idx]=soal; lxToast('✅ Soal diperbarui!'); }
+  lxSimpanLS(); lxRenderDaftar(); lxTutupModal();
+}
+
+function lxHapus(idx) {
+  if(!confirm(`Hapus Soal ${idx+1}?`)) return;
+  lxSoalList.splice(idx,1); lxSimpanLS(); lxRenderDaftar(); lxToast('🗑️ Soal dihapus.');
+}
+
+function lxResetSemua() {
+  if(!lxSoalList.length){ lxToast('Belum ada soal.'); return; }
+  if(!confirm('Hapus SEMUA soal?')) return;
+  lxSoalList=[]; lxSimpanLS(); lxRenderDaftar(); lxToast('🗑️ Semua soal dihapus.');
+}
+
+/* Mulai latihan */
+function lxMulaiLatihan() {
+  if(!lxSoalList.length){ lxToast('⚠️ Tambah soal dulu!'); return; }
+  lxJawaban = {};
+  document.getElementById('lx-petunjuk').style.display  = 'none';
+  document.getElementById('lx-panel-mgmt').style.display = 'none';
+  document.getElementById('lx-pengerjaan').style.display = 'block';
+  document.getElementById('lx-hasil').style.display     = 'none';
+  lxRenderSoal(); lxUpdateProg(); window.scrollTo(0,0);
+}
+
+function lxKeMgmt() {
+  document.getElementById('lx-petunjuk').style.display  = 'block';
+  document.getElementById('lx-panel-mgmt').style.display = 'block';
+  document.getElementById('lx-pengerjaan').style.display = 'none';
+  document.getElementById('lx-hasil').style.display     = 'none';
+  window.scrollTo(0,0);
+}
+
+function lxRenderSoal() {
+  const ct = document.getElementById('lx-soal-container');
+  ct.innerHTML = lxSoalList.map((s,idx) => {
+    let jawHtml = '';
+    if(s.tipe==='pg'){
+      const opts = ['a','b','c','d'].filter(h=>s.opsi&&s.opsi[h]).map(h =>
+        `<button class="lx-opt" id="lxo-${idx}-${h}" onclick="lxPilih(${idx},'${h}')">
+          <span style="color:var(--teal);font-weight:900;margin-right:5px">${h.toUpperCase()}.</span>${lxEsc(s.opsi[h])}
+        </button>`).join('');
+      jawHtml = `<div class="lx-opts">${opts}</div>`;
+    } else {
+      jawHtml = `<input class="lx-isian" type="text" id="lxi-${idx}" placeholder="Ketik jawaban…" oninput="lxIsian(${idx},this.value)">`;
+    }
+    return `<div class="lx-qcard" style="animation-delay:${idx*.05}s">
+      <div class="lx-qnum">Soal ${idx+1} · ${s.tipe==='pg'?'Pilihan Ganda':'Isian Singkat'}</div>
+      <div class="lx-qtxt">${lxEsc(s.q)}</div>${jawHtml}
+    </div>`;
+  }).join('');
+}
+
+function lxPilih(idx, h) {
+  lxJawaban[idx] = h;
+  ['a','b','c','d'].forEach(x => { const el=document.getElementById(`lxo-${idx}-${x}`); if(el) el.classList.remove('lx-sel'); });
+  const el=document.getElementById(`lxo-${idx}-${h}`); if(el) el.classList.add('lx-sel');
+  lxUpdateProg();
+}
+
+function lxIsian(idx, val) { lxJawaban[idx]=val.trim(); lxUpdateProg(); }
+
+function lxUpdateProg() {
+  const total=lxSoalList.length, dijawab=Object.keys(lxJawaban).filter(k=>lxJawaban[k]!=='').length;
+  const pct=total>0?Math.round(dijawab/total*100):0;
+  document.getElementById('lx-prog-fill').style.width=pct+'%';
+  document.getElementById('lx-prog-txt').textContent=`${dijawab} / ${total} soal dijawab`;
+}
+
+function lxSubmit() {
+  lxSoalList.forEach((s,idx) => { if(s.tipe==='isi'){ const el=document.getElementById(`lxi-${idx}`); if(el) lxJawaban[idx]=el.value.trim(); } });
+  const belum=lxSoalList.filter((_,i)=>!lxJawaban[i]||lxJawaban[i]==='').length;
+  if(belum>0 && !confirm(`${belum} soal belum dijawab. Tetap submit?`)) return;
+  let benar=0;
+  lxSoalList.forEach((s,idx) => { if((lxJawaban[idx]||'').toLowerCase().trim()===s.kunci.toLowerCase().trim()) benar++; });
+  const total=lxSoalList.length, skor=total>0?Math.round(benar/total*100):0;
+  document.getElementById('lx-skor-num').textContent  = skor;
+  document.getElementById('lx-skor-dari').textContent = `dari ${total} soal`;
+  document.getElementById('lx-skor-msg').textContent  = lxVerdict(skor);
+  document.getElementById('lx-jml-benar').textContent = benar;
+  document.getElementById('lx-jml-salah').textContent = total-benar;
+  lxRenderReview();
+  document.getElementById('lx-pengerjaan').style.display = 'none';
+  document.getElementById('lx-hasil').style.display     = 'block';
+  if(skor===100){ confetti(80); addStars(5); }
+  else if(skor>=60){ confetti(28); addStars(3); }
+  else addStars(1);
+  // Simpan skor terbaik
+  const prev=parseInt(localStorage.getItem('sx_best_score')||'0');
+  if(skor>prev) localStorage.setItem('sx_best_score',skor);
+  window.scrollTo(0,0);
+}
+
+function lxUlangi() { lxMulaiLatihan(); }
+
+function lxVerdict(s) {
+  if(s===100) return '🏆 Sempurna! Kamu luar biasa!';
+  if(s>=80)   return '🎉 Hebat! Terus pertahankan!';
+  if(s>=60)   return '👍 Bagus! Masih bisa lebih baik.';
+  if(s>=40)   return '📚 Perlu belajar lagi, semangat!';
+  return '💪 Jangan menyerah, coba lagi!';
+}
+
+function lxRenderReview() {
+  const box=document.getElementById('lx-review-box');
+  box.innerHTML = lxSoalList.map((s,idx) => {
+    const jaw=lxJawaban[idx]||'', kunci=s.kunci;
+    const benar=jaw.toLowerCase().trim()===kunci.toLowerCase().trim();
+    let jawT=jaw||'(tidak dijawab)', kunciT=kunci;
+    if(s.tipe==='pg'&&s.opsi){
+      jawT = jaw ? `${jaw.toUpperCase()}. ${lxEsc(s.opsi[jaw.toLowerCase()]||'')}` : '(tidak dijawab)';
+      kunciT = `${kunci.toUpperCase()}. ${lxEsc(s.opsi[kunci]||'')}`;
+    }
+    const kRow = !benar ? `<div><span class="lx-albl">Jawaban benar: </span><span class="lx-abenar">${kunciT}</span></div>` : '';
+    return `<div class="lx-rev-item ${benar?'lx-benar':'lx-salah'}" style="animation-delay:${idx*.06}s">
+      <div class="lx-rev-hdr"><div class="lx-rev-ikon">${benar?'✓':'✗'}</div><div class="lx-rev-num">Soal ${idx+1}</div></div>
+      <div class="lx-rev-qtxt">${lxEsc(s.q)}</div>
+      <div class="lx-rev-ans">
+        <div><span class="lx-albl">Jawabanmu: </span><span class="${benar?'lx-abenar':'lx-asalah'}">${lxEsc(jawT)}</span></div>${kRow}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+/* ════════════════════════════════════════════
+   SPEED GAME — 5 soal statistika
+   ════════════════════════════════════════════ */
+const QS = [
+  { q:"Nilai ulangan 5 siswa. Berapa mean-nya?", data:[70,75,80,65,90], opts:["74","76","78","80"], ans:1, step:"Jumlah: 70+75+80+65+90 = 380\nMean = 380 ÷ 5 = 76 ✓" },
+  { q:"Data diurutkan: 60,65,70,75,80. Berapa mediannya?", data:[60,65,70,75,80], opts:["65","70","72","75"], ans:1, step:"5 data (ganjil) → posisi ke-3\nData ke-3 = 70 ✓" },
+  { q:"Data: 12,15,13,15,14,15,11. Berapakah modusnya?", data:[11,12,13,14,15,15,15], opts:["13","14","15","12"], ans:2, step:"11→1x 12→1x 13→1x 14→1x 15→3x\nModus = 15 ✓" },
+  { q:"Data: 70,72,75,74,71 + nilai ekstrem 200. Ukuran paling berubah besar?", data:[70,72,75,74,71,200], opts:["Median","Modus","Mean","Sama"], ans:2, step:"Mean sebelum=72.4, sesudah=93.7 (+21.3)\nMedian: 73 (+1) → Mean paling berubah ✓" },
+  { q:"Nilai kelas ada nilai 5 (siswa sakit). Ukuran terbaik untuk nilai 'khas' kelas?", data:[5,74,75,75,75,76,77], opts:["Mean","Median/Modus","Keduanya","Tidak ada"], ans:1, step:"Mean terseret jadi 65.3 (tidak representatif)\nMedian=75, Modus=75 → lebih mewakili kelas ✓" },
+];
+
+let gIdx=0, gScore=0, gAnswered=false, gTimer=null, gTime=20, gUAns=[];
+
+function initGame() {
+  gIdx=0; gScore=0; gAnswered=false; gUAns=[];
+  document.getElementById('gameCard').style.display='block';
+  document.getElementById('gameScore').style.display='none';
+  document.getElementById('timerFill').style.background='linear-gradient(90deg,var(--green),var(--yellow))';
+  renderG();
+}
+
+function renderG() {
+  gAnswered=false; gTime=20; clearInterval(gTimer);
+  const q=QS[gIdx];
+  document.getElementById('gSteps').innerHTML=QS.map((_,i)=>`<div style="width:9px;height:9px;border-radius:50%;background:${i<gIdx?'var(--teal)':i===gIdx?'var(--yellow)':'rgba(255,255,255,.12)'}"></div>`).join('');
+  document.getElementById('gQ').textContent=q.q;
+  document.getElementById('gData').innerHTML=q.data.map(v=>`<div class="${v>=100||v<=10&&q.data.length>4?'gdc ge':'gdc gn'}">${v}</div>`).join('');
+  document.getElementById('gOpts').innerHTML=q.opts.map((o,i)=>`<button class="go" id="go${i}" onclick="gAns(${i})">${o}</button>`).join('');
+  document.getElementById('gFb').className='game-fb'; document.getElementById('gFb').innerHTML='';
+  document.getElementById('timerFill').style.width='100%';
+  gTimer=setInterval(()=>{
+    gTime--;
+    document.getElementById('timerFill').style.width=(gTime/20*100)+'%';
+    if(gTime<=5) document.getElementById('timerFill').style.background='linear-gradient(90deg,var(--red),var(--orange))';
+    if(gTime<=0){ clearInterval(gTimer); gAns(-1); }
+  },1000);
+}
+
+function gAns(i) {
+  if(gAnswered) return; gAnswered=true; clearInterval(gTimer);
+  const q=QS[gIdx]; gUAns.push({chosen:i,correct:q.ans});
+  document.querySelectorAll('.go').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('gFb');
+  if(i===q.ans){
+    document.getElementById('go'+i).className='go gok';
+    fb.className='game-fb ok show';
+    fb.innerHTML=`⭐ Benar! <div class="gfb-step">${q.step.replace(/\n/g,'<br>')}</div>`;
+    gScore++; confetti(22); addStars(1);
+    burst(innerWidth/2, innerHeight/3, '#00e5cc', 20);
+  } else {
+    if(i>=0) document.getElementById('go'+i).className='go gno';
+    document.getElementById('go'+q.ans).className='go gok';
+    fb.className='game-fb no show';
+    fb.innerHTML=`${i<0?'⏰ Waktu habis!':'❌ Kurang tepat.'}<div class="gfb-step">${q.step.replace(/\n/g,'<br>')}</div>`;
+  }
+  setTimeout(()=>{ gIdx++; if(gIdx>=QS.length) showGScore(); else renderG(); },2200);
+}
+
+function showGScore() {
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('gameScore').style.display='block';
+  const p=gScore/QS.length;
+  const emj=['😅','🙂','😊','😄','🏆'];
+  document.getElementById('gsE').textContent=emj[Math.floor(p*(emj.length-1))];
+  document.getElementById('gsN').textContent='⭐'.repeat(gScore)||'—';
+  document.getElementById('gsOf').textContent=`${gScore} dari ${QS.length} soal benar`;
+  document.getElementById('gsM').textContent=p===1?'Sempurna! Semua benar!':p>=.8?'Luar biasa!':p>=.6?'Bagus, latihan lagi!':'Jangan menyerah!';
+  document.getElementById('gsR').innerHTML=gUAns.map((a,i)=>`<div class="ritem"><span>Soal ${i+1}</span><span class="${a.chosen===a.correct?'rok':'rno'}">${a.chosen===a.correct?'✓ Benar':'✗ Salah'}</span></div>`).join('');
+  if(p===1){ confetti(90); addStars(5); }
+  else addStars(gScore);
+}
+
+/* ── Init saat halaman dimuat ── */
+lxMuat();
+lxRenderDaftar();
+</script>
+</body>
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatXplore — Materi Lengkap</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060e1a;--card:#0d1f35;--card2:#122640;
+  --border:rgba(255,255,255,.06);
+  --teal:#00e5cc;--orange:#ff8c42;--yellow:#ffd166;
+  --blue:#4da6ff;--green:#06d6a0;--purple:#c77dff;
+  --red:#ff4d6d;--text:#dde8f5;--muted:#3d5a7a;--white:#f0f8ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,229,204,.04),transparent 60%),radial-gradient(ellipse 50% 30% at 80% 70%,rgba(255,140,66,.04),transparent 60%);pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(6,14,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;}
+.logo{font-family:'Fredoka One',sans-serif;font-size:20px;background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo span{background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:flex;gap:3px;}
+.nlink{padding:5px 9px;border-radius:7px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s;text-decoration:none;display:flex;align-items:center;}
+.nlink:hover{color:var(--teal);background:rgba(0,229,204,.08);}
+.nlink.here{color:var(--blue);background:rgba(77,166,255,.08);}
+
+/* LAYOUT */
+.page{padding-top:56px;min-height:100vh;position:relative;z-index:1;}
+.pw-sm{max-width:660px;margin:0 auto;padding:18px 14px 60px;}
+.ph{margin-bottom:18px;}
+.ph h2{font-family:'Fredoka One',sans-serif;font-size:24px;color:var(--white);margin-bottom:2px;}
+.ph p{font-size:13px;color:var(--muted);}
+
+/* PROGRESS BAR MATERI */
+.mat-prog{display:flex;gap:4px;margin-bottom:16px;}
+.mp{flex:1;height:5px;border-radius:3px;background:var(--card2);transition:background .4s;}
+.mp.done{background:var(--teal);}
+.mp.active{background:var(--orange);}
+
+/* TAB MATERI */
+.mat-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:3px;}
+.mat-tabs::-webkit-scrollbar{height:0;}
+.mtab{
+  padding:8px 14px;border-radius:10px;font-weight:800;font-size:12px;
+  cursor:pointer;border:1.5px solid var(--border);background:var(--card);
+  color:var(--muted);transition:all .22s;font-family:'Nunito',sans-serif;white-space:nowrap;
+}
+.mtab:hover{border-color:rgba(0,229,204,.3);color:var(--text);}
+.mtab.active{background:rgba(0,229,204,.1);border-color:var(--teal);color:var(--teal);}
+
+/* KONTEN TAB */
+.mc-cont{display:none;}
+.mc-cont.active{display:block;animation:pgIn .35s ease;}
+@keyframes pgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* KARTU MATERI */
+.mat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:22px 20px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.mat-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:4px;
+  background:var(--ma-c,var(--teal));border-radius:4px 0 0 4px;
+}
+.mat-card h3{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;
+  color:var(--white);margin-bottom:10px;padding-left:13px;
+}
+.mat-card p{font-size:13px;color:#94a3b8;line-height:1.8;padding-left:13px;margin-bottom:8px;}
+
+/* KOTAK RUMUS */
+.formula{
+  background:var(--bg);border:1.5px solid var(--teal);border-radius:12px;
+  padding:13px 18px;margin:12px 0 12px 13px;
+  font-family:monospace;font-size:14px;color:var(--teal);
+  text-align:center;position:relative;
+}
+.formula::before{
+  content:'RUMUS';position:absolute;top:-9px;left:14px;
+  background:var(--bg);padding:0 7px;
+  font-size:8px;font-weight:800;color:var(--teal);letter-spacing:.12em;
+}
+.formula.biru{border-color:var(--blue);color:var(--blue);}
+.formula.biru::before{color:var(--blue);}
+.formula.hijau{border-color:var(--green);color:var(--green);}
+.formula.hijau::before{color:var(--green);}
+
+/* CHIP DATA */
+.dchips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 10px 13px;}
+.dc{
+  background:var(--card2);border:1.5px solid var(--border);
+  padding:6px 12px;border-radius:8px;
+  font-family:monospace;font-size:13px;font-weight:700;color:var(--text);
+  transition:all .2s;
+}
+.dc.hi{border-color:var(--teal);color:var(--teal);background:rgba(0,229,204,.07);}
+.dc.hi-biru{border-color:var(--blue);color:var(--blue);background:rgba(77,166,255,.07);}
+.dc.hi-hijau{border-color:var(--green);color:var(--green);background:rgba(6,214,160,.07);}
+.dc.ex{border-color:var(--orange);color:var(--orange);background:rgba(255,140,66,.08);}
+
+/* KOTAK TIP */
+.tip{
+  background:rgba(255,140,66,.08);border-left:3px solid var(--orange);
+  padding:11px 14px 11px 13px;border-radius:0 11px 11px 0;
+  margin:12px 0 0 13px;font-size:13px;color:#fed7aa;line-height:1.6;
+}
+.tip.biru{background:rgba(77,166,255,.07);border-color:var(--blue);color:#bfdbfe;}
+.tip.hijau{background:rgba(6,214,160,.07);border-color:var(--green);color:#a7f3d0;}
+
+/* TABEL DAMPAK */
+.it{width:100%;border-collapse:collapse;margin:13px 0 0;font-size:12.5px;overflow:hidden;border-radius:11px;}
+.it th{padding:9px 11px;background:rgba(0,0,0,.25);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;text-align:left;}
+.it td{padding:10px 11px;border-top:1px solid var(--border);}
+.it .ihr td{background:rgba(255,140,66,.06);}
+.ibadge{display:inline-block;background:var(--orange);color:var(--bg);font-size:8px;font-weight:900;padding:2px 6px;border-radius:3px;margin-left:5px;}
+
+/* CONTOH NYATA LIST */
+.contoh-nyata{margin:10px 0 0 13px;}
+.cn-item{display:flex;gap:9px;font-size:13px;color:#94a3b8;margin-bottom:6px;line-height:1.6;}
+.cn-item strong{color:var(--text);}
+
+/* TOMBOL NAVIGASI MATERI */
+.mat-nav{display:flex;justify-content:flex-end;margin-top:14px;}
+.btn-nm{
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg);border:none;padding:12px 22px;border-radius:12px;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;
+  cursor:pointer;transition:all .25s;box-shadow:0 5px 16px rgba(0,229,204,.22);
+  text-decoration:none;display:inline-block;
+}
+.btn-nm:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(0,229,204,.32);}
+.btn-nm.orange{background:linear-gradient(135deg,var(--orange),var(--yellow));box-shadow:0 5px 16px rgba(255,140,66,.22);}
+.btn-nm.orange:hover{box-shadow:0 9px 24px rgba(255,140,66,.35);}
+
+/* KARTU RINGKASAN PEMILIHAN */
+.pilih-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;margin-top:14px;
+}
+.pc-hdr{
+  padding:13px 16px;background:rgba(0,0,0,.2);
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  color:var(--white);text-transform:uppercase;letter-spacing:.07em;
+}
+.pc-item{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 16px;border-bottom:1px solid var(--border);
+}
+.pc-item:last-child{border-bottom:none;}
+.pc-icon{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.pc-info strong{display:block;font-size:13.5px;color:var(--white);margin-bottom:3px;}
+.pc-info span{font-size:12px;color:var(--muted);line-height:1.5;}
+.pc-badge{
+  padding:3px 10px;border-radius:100px;font-size:10px;font-weight:800;
+  display:inline-block;margin-top:5px;
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Stat<span>Xplore</span></div>
+  <div class="nav-links">
+    <a class="nlink" href="01-beranda.html">🏠</a>
+    <a class="nlink" href="02-cerita.html">📖 Cerita</a>
+    <a class="nlink here" href="03-materi.html">📚 Materi</a>
+    <a class="nlink" href="04-simulasi.html">🔬 Sim</a>
+    <a class="nlink" href="05-latihan.html">🎮 Main</a>
+    <a class="nlink" href="06-developer.html">👤</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════
+     HALAMAN MATERI LENGKAP
+     4 tab: Mean · Median · Modus · Ekstrem
+     ═══════════════════════════════════ -->
+<div class="page">
+  <div class="pw-sm">
+    <div class="ph">
+      <h2>📚 Materi Lengkap</h2>
+      <p>Konsep, rumus & contoh nyata — klik tab untuk berpindah topik.</p>
+    </div>
+
+    <!-- Progress bar 5 segmen -->
+<div class="mat-prog">
+  <div class="mp active" id="mp0"></div>
+  <div class="mp" id="mp1"></div>
+  <div class="mp" id="mp2"></div>
+  <div class="mp" id="mp3"></div>
+  <div class="mp" id="mp4"></div>
+</div>
+
+    <div class="mat-tabs">
+  <button class="mtab active" onclick="switchMat(0,this)">① Mean</button>
+  <button class="mtab" onclick="switchMat(1,this)">② Median</button>
+  <button class="mtab" onclick="switchMat(2,this)">③ Modus</button>
+  <button class="mtab" onclick="switchMat(3,this)">⚡ Nilai Ekstrem</button>
+  <button class="mtab" onclick="switchMat(4,this)">🎥 Video</button>
+</div>
+
+
+    <!-- ══════════════════
+         TAB 1: MEAN
+         ══════════════════ -->
+    <div class="mc-cont active" id="mc0">
+      <div class="mat-card" style="--ma-c:var(--teal)">
+        <h3>🔢 Mean (Rata-rata)</h3>
+        <p>Mean adalah jumlah seluruh data dibagi banyaknya data. Ini ukuran pemusatan paling umum digunakan dalam kehidupan sehari-hari.</p>
+
+        <div class="formula">Mean = (x₁ + x₂ + … + xₙ) ÷ n</div>
+
+        <p><strong style="color:var(--white)">Contoh — Nilai ulangan 5 siswa:</strong></p>
+        <div class="dchips">
+          <div class="dc">70</div><div class="dc">75</div>
+          <div class="dc">80</div><div class="dc">65</div><div class="dc">90</div>
+        </div>
+        <p>Jumlah = 70+75+80+65+90 = <strong style="color:var(--teal)">380</strong><br>
+           Mean = 380 ÷ 5 = <strong style="color:var(--teal);font-size:16px">76</strong></p>
+
+        <p style="margin-top:12px"><strong style="color:var(--white)">📌 Contoh penggunaan nyata:</strong></p>
+        <div class="contoh-nyata">
+          <div class="cn-item"><span>📝</span><span><strong>Nilai rapor</strong> — guru menjumlahkan semua nilai ulangan lalu dibagi jumlahnya</span></div>
+          <div class="cn-item"><span>🌡️</span><span><strong>Suhu rata-rata kota</strong> — BMKG mencatat suhu tiap jam lalu dihitung mean-nya</span></div>
+          <div class="cn-item"><span>💰</span><span><strong>Pengeluaran harian</strong> — hitung mean 7 hari untuk tahu rata-rata belanja per hari</span></div>
+          <div class="cn-item"><span>⚽</span><span><strong>Statistik pemain bola</strong> — rata-rata gol per pertandingan dalam satu musim</span></div>
+        </div>
+
+        <div class="tip">
+          ⚠️ <strong>Peringatan penting!</strong> Mean sangat sensitif terhadap nilai ekstrem (outlier). Satu angka yang jauh berbeda bisa menarik mean ke arahnya dan membuatnya tidak lagi mewakili data secara jujur. Coba buktikan di halaman Simulasi!
+        </div>
+      </div>
+      <div class="mat-nav">
+        <button class="btn-nm" onclick="switchMat(1,null)">Lanjut: Median →</button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════
+         TAB 2: MEDIAN
+         ══════════════════ -->
+    <div class="mc-cont" id="mc1">
+      <div class="mat-card" style="--ma-c:var(--blue)">
+        <h3>📍 Median (Nilai Tengah)</h3>
+        <p>Median adalah nilai yang berada tepat di tengah setelah seluruh data diurutkan dari yang terkecil ke yang terbesar.</p>
+
+        <div class="formula biru">
+          Ganjil → nilai posisi ke-((n+1)/2)<br>
+          Genap &nbsp;→ rata-rata dua nilai tengah
+        </div>
+
+        <p><strong style="color:var(--white)">Contoh 1 — 5 data (jumlah ganjil):</strong></p>
+        <div class="dchips">
+          <div class="dc">65</div><div class="dc">70</div>
+          <div class="dc hi-biru">75 ← tengah</div>
+          <div class="dc">80</div><div class="dc">90</div>
+        </div>
+        <p>n = 5 (ganjil) → posisi ke-3 = <strong style="color:var(--blue);font-size:16px">75</strong></p>
+
+        <p style="margin-top:12px"><strong style="color:var(--white)">Contoh 2 — 6 data (jumlah genap):</strong></p>
+        <div class="dchips">
+          <div class="dc">60</div><div class="dc">65</div>
+          <div class="dc hi-biru">70</div><div class="dc hi-biru">75</div>
+          <div class="dc">80</div><div class="dc">90</div>
+        </div>
+        <p>n = 6 (genap) → rata-rata posisi ke-3 & ke-4 = (70+75)÷2 = <strong style="color:var(--blue);font-size:16px">72,5</strong></p>
+
+        <p style="margin-top:12px"><strong style="color:var(--white)">📌 Contoh penggunaan nyata:</strong></p>
+        <div class="contoh-nyata">
+          <div class="cn-item"><span>🏠</span><span><strong>Harga properti</strong> — BPS & bank gunakan median karena tidak terpengaruh harga vila super mewah</span></div>
+          <div class="cn-item"><span>💼</span><span><strong>Statistik gaji</strong> — "median gaji" lebih jujur karena tidak terseret gaji CEO yang miliaran</span></div>
+          <div class="cn-item"><span>🏥</span><span><strong>Waktu tunggu RS</strong> — median 20 menit artinya tepat setengah pasien dilayani dalam ≤20 menit</span></div>
+          <div class="cn-item"><span>🌊</span><span><strong>Curah hujan</strong> — median curah hujan lebih stabil dari mean yang bisa terseret hari hujan ekstrem</span></div>
+        </div>
+
+        <div class="tip biru">
+          🛡️ <strong>Keunggulan median:</strong> Sangat tahan terhadap nilai ekstrem! Walaupun ada satu angka yang sangat besar atau sangat kecil, median tidak banyak berubah karena hanya melihat posisi — bukan nilai.
+        </div>
+      </div>
+      <div class="mat-nav">
+        <button class="btn-nm" onclick="switchMat(2,null)">Lanjut: Modus →</button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════
+         TAB 3: MODUS
+         ══════════════════ -->
+    <div class="mc-cont" id="mc2">
+      <div class="mat-card" style="--ma-c:var(--green)">
+        <h3>🔁 Modus (Nilai Terbanyak)</h3>
+        <p>Modus adalah nilai yang paling sering muncul dalam kumpulan data. Sebuah data bisa memiliki satu modus, lebih dari satu modus, atau bahkan tidak ada modus sama sekali.</p>
+
+        <div class="formula hijau">Modus = nilai dengan frekuensi kemunculan tertinggi</div>
+
+        <p><strong style="color:var(--white)">Contoh — Data nilai:</strong></p>
+        <div class="dchips">
+          <div class="dc">70</div>
+          <div class="dc hi-hijau">80</div>
+          <div class="dc hi-hijau">80</div>
+          <div class="dc hi-hijau">80</div>
+          <div class="dc">75</div><div class="dc">90</div><div class="dc">65</div>
+        </div>
+        <p>Frekuensi: 65→1x, 70→1x, 75→1x, <strong style="color:var(--green)">80→3x ✓</strong>, 90→1x<br>
+           Modus = <strong style="color:var(--green);font-size:16px">80</strong> (muncul 3× — paling sering)</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--white)">Data dengan 2 modus (bimodal):</strong></p>
+        <div class="dchips">
+          <div class="dc hi-hijau">70</div><div class="dc hi-hijau">70</div>
+          <div class="dc">75</div>
+          <div class="dc hi-hijau">80</div><div class="dc hi-hijau">80</div>
+          <div class="dc">90</div>
+        </div>
+        <p>Modus = <strong style="color:var(--green)">70</strong> dan <strong style="color:var(--green)">80</strong> (masing-masing muncul 2×)</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--white)">📌 Contoh penggunaan nyata:</strong></p>
+        <div class="contoh-nyata">
+          <div class="cn-item"><span>👕</span><span><strong>Ukuran baju terlaris</strong> — Pak Andi tahu ukuran M paling banyak dibeli, jadi stok M diperbanyak</span></div>
+          <div class="cn-item"><span>🍛</span><span><strong>Menu favorit restoran</strong> — menu yang paling sering dipesan adalah modusnya → diprioritaskan stoknya</span></div>
+          <div class="cn-item"><span>🎵</span><span><strong>Genre musik terpopuler</strong> — genre yang paling banyak diputar = modus preferensi pendengar</span></div>
+          <div class="cn-item"><span>🚌</span><span><strong>Jam puncak angkutan</strong> — jam yang paling sering dinaiki penumpang = modus jam keberangkatan</span></div>
+        </div>
+
+        <div class="tip hijau">
+          🛡️ <strong>Modus paling kebal!</strong> Nilai ekstrem tidak memengaruhi modus sama sekali — karena modus hanya menghitung frekuensi kemunculan. Cocok untuk data kategori seperti ukuran, warna, atau jenis.
+        </div>
+      </div>
+      <div class="mat-nav">
+        <button class="btn-nm" onclick="switchMat(3,null)">Lanjut: Nilai Ekstrem →</button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════
+         TAB 4: NILAI EKSTREM
+         ══════════════════════ -->
+    <div class="mc-cont" id="mc3">
+      <div class="mat-card" style="--ma-c:var(--orange)">
+        <h3>⚡ Nilai Ekstrem (Outlier)</h3>
+        <p>Nilai ekstrem atau <em style="color:var(--orange)">outlier</em> adalah data yang nilainya jauh berbeda dari data lainnya — bisa sangat besar atau sangat kecil. Kehadirannya bisa menyesatkan analisis statistik.</p>
+
+        <p style="margin-top:10px"><strong style="color:var(--white)">Ilustrasi dampak:</strong></p>
+        <div class="dchips">
+          <div class="dc">74</div><div class="dc">75</div>
+          <div class="dc">76</div><div class="dc">74</div>
+          <div class="dc ex">5 ← ekstrem!</div>
+        </div>
+
+        <!-- Tabel perbandingan dampak -->
+        <table class="it">
+          <thead>
+            <tr>
+              <th>Ukuran</th>
+              <th>Tanpa Nilai 5</th>
+              <th>Dengan Nilai 5</th>
+              <th>Perubahan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ihr">
+              <td>
+                <strong style="color:var(--orange)">Mean</strong>
+                <span class="ibadge">Paling terdampak!</span>
+              </td>
+              <td style="color:#94a3b8">74,75</td>
+              <td style="color:var(--orange)">60,8</td>
+              <td style="color:var(--red);font-weight:800">−13,95 😱</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--blue)">Median</strong></td>
+              <td style="color:#94a3b8">74,5</td>
+              <td style="color:var(--blue)">74</td>
+              <td style="color:var(--muted);font-weight:700">−0,5 (kecil)</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--green)">Modus</strong></td>
+              <td style="color:#94a3b8">74</td>
+              <td style="color:var(--green)">74</td>
+              <td style="color:var(--green);font-weight:700">0 (tidak berubah ✓)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="margin-top:14px"><strong style="color:var(--white)">📌 Contoh kasus nyata nilai ekstrem:</strong></p>
+        <div class="contoh-nyata">
+          <div class="cn-item"><span>💼</span><span><strong>Data gaji karyawan</strong> — 1 CEO bergaji 500 juta membuat mean gaji "kelihatan tinggi" padahal mayoritas gaji 5 juta</span></div>
+          <div class="cn-item"><span>🏠</span><span><strong>Harga properti</strong> — 1 villa mewah 50 miliar di antara rumah 500 jutaan membuat mean tidak representatif</span></div>
+          <div class="cn-item"><span>🎓</span><span><strong>Nilai ujian</strong> — siswa yang sakit & dapat nilai 10 di antara teman-temannya yang dapat 80–90</span></div>
+        </div>
+
+        <!-- Kartu panduan memilih ukuran -->
+        <div class="pilih-card">
+          <div class="pc-hdr">🧭 Panduan Memilih Ukuran Pemusatan</div>
+          <div class="pc-item">
+            <div class="pc-icon" style="background:rgba(255,140,66,.12)">📐</div>
+            <div class="pc-info">
+              <strong style="color:var(--orange)">Gunakan Mean jika…</strong>
+              <span>Data merata tanpa nilai ekstrem. Contoh: nilai rapor semester (biasanya tidak ada yang ekstrem jauh)</span>
+              <span class="pc-badge" style="background:rgba(255,140,66,.12);color:var(--orange)">Data normal/merata</span>
+            </div>
+          </div>
+          <div class="pc-item">
+            <div class="pc-icon" style="background:rgba(77,166,255,.12)">📍</div>
+            <div class="pc-info">
+              <strong style="color:var(--blue)">Gunakan Median jika…</strong>
+              <span>Ada nilai ekstrem yang bisa menyesatkan. Contoh: harga rumah, data gaji, pendapatan keluarga</span>
+              <span class="pc-badge" style="background:rgba(77,166,255,.12);color:var(--blue)">Ada outlier</span>
+            </div>
+          </div>
+          <div class="pc-item">
+            <div class="pc-icon" style="background:rgba(6,214,160,.12)">🔁</div>
+            <div class="pc-info">
+              <strong style="color:var(--green)">Gunakan Modus jika…</strong>
+              <span>Data berupa kategori atau ingin tahu yang "paling umum". Contoh: ukuran baju, menu favorit, warna favorit</span>
+              <span class="pc-badge" style="background:rgba(6,214,160,.12);color:var(--green)">Data kategori</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip" style="margin-top:14px">
+          🎯 <strong>Ingat:</strong> Tidak ada ukuran yang selalu terbaik. Konteks masalah menentukan ukuran mana yang paling tepat dipakai!
+        </div>
+      </div>
+
+          <div class="mat-nav">
+        <button class="btn-nm orange" onclick="switchMat(4,null)">
+          🎥 Video Pembelajaran →
+        </button>
+      </div>
+
+    </div>
+</div>
+<!-- ══════════════════════
+     TAB 5 : VIDEO PEMBELAJARAN
+     ══════════════════════ -->
+<div class="mc-cont" id="mc4">
+
+  <!-- VIDEO -->
+  <div class="mat-card" style="--ma-c:var(--red)">
+
+    <h3>🎥 Video Pembelajaran</h3>
+
+    <p>
+      Setelah mempelajari Mean, Median, Modus, dan Nilai Ekstrem,
+      silakan tonton video berikut untuk memperkuat pemahamanmu.
+    </p>
+
+    <div style="margin:18px 0 18px 13px;">
+
+  <iframe
+    width="100%"
+    height="315"
+    src="https://www.youtube.com/embed/LsgtdG842fw"
+    title="Video Pembelajaran Statistika"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    style="
+      width:100%;
+      min-height:315px;
+      border:none;
+      border-radius:14px;">
+  </iframe>
+
+</div>
+
+<div style="text-align:center;margin-top:15px;">
+  <a
+    href="https://youtu.be/LsgtdG842fw"
+    target="_blank"
+    class="btn-nm">
+    ▶ Buka di YouTube
+  </a>
+</div>
+
+    </div>
+
+    <div class="tip">
+      📺 Video ini membantu memperjelas konsep Mean, Median,
+      Modus, dan Nilai Ekstrem.
+    </div>
+
+  </div>
+
+  <!-- QR CODE -->
+  <div class="mat-card" style="--ma-c:var(--purple)">
+
+    <h3>📱 Scan QR Code</h3>
+
+    <p>
+      Scan QR Code berikut menggunakan kamera ponsel untuk membuka
+      video pembelajaran secara langsung.
+    </p>
+
+    <div style="text-align:center;margin-top:20px;">
+
+      <img
+        src="qr materi.png"
+        alt="QR Code Video"
+        style="
+          width:260px;
+          max-width:100%;
+          background:white;
+          padding:10px;
+          border-radius:16px;">
+
+    </div>
+
+    <p style="text-align:center;margin-top:12px;color:var(--muted);">
+      Scan untuk membuka video pembelajaran di YouTube
+    </p>
+
+  </div>
+
+  <!-- TOMBOL KE SIMULASI -->
+  <div class="mat-nav">
+    <a class="btn-nm orange" href="04-simulasi.html">
+      🔬 Lanjut ke Simulasi →
+    </a>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   MATERI — JavaScript
+   Logika tab & progress bar
+   ════════════════════════════════════ */
+
+// Lacak tab mana yang sudah dikunjungi
+let matDone = [false, false, false, false, false];
+
+function switchMat(n, btn) {
+
+  document.querySelectorAll('.mc-cont').forEach((c, i) => {
+    c.classList.toggle('active', i === n);
+  });
+
+  document.querySelectorAll('.mtab').forEach((t, i) => {
+    t.classList.toggle('active', i === n);
+  });
+
+  matDone[n] = true;
+
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('mp' + i);
+
+    if (!el) continue;
+
+    if (i === n) {
+      el.className = 'mp active';
+    } else if (matDone[i]) {
+      el.className = 'mp done';
+    } else {
+      el.className = 'mp';
+    }
+  }
+
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

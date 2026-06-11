@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stastika — Beranda</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   BERANDA — CSS
+   Warna utama dikendalikan dari :root.
+   BERANDA — CSS Warna utama dikendalikan dari :root.
+   Ganti nilai di sini untuk ubah tema.
+:root{
+  --bg:#1b1024;
+  --card:#2b1633;
+  --card2:#3a1f45;
+
+  --teal:#ff66c4;
+  --orange:#ff9f68;
+  --yellow:#ffd166;
+
+  --blue:#8ec5ff;
+  --green:#72f1b8;
+  --purple:#d9a3ff;
+
+  --text:#ffeefe;
+  --muted:#b68bbf;
+  --white:#fff7ff;
+}
+   ════════════════════════════════════════ */
+:root{
+  --bg:#1b1024;
+  --card:#2b1633;
+  --card2:#3a1f45;
+
+  --teal:#ff66c4;
+  --orange:#ff9f68;
+  --yellow:#ffd166;
+
+  --blue:#8ec5ff;
+  --green:#72f1b8;
+  --purple:#d9a3ff;
+
+  --text:#ffeefe;
+  --muted:#b68bbf;
+  --white:#fff7ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Nunito Sans',sans-serif;
+  min-height:100vh; overflow-x:hidden;
+}
+
+/* ── Cahaya ambient latar ── */
+body::before{
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,229,204,.04),transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 70%,rgba(255,140,66,.04),transparent 60%),
+    radial-gradient(ellipse 40% 50% at 50% 100%,rgba(77,166,255,.03),transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── Kanvas partikel latar ── */
+#bgCanvas{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.35; }
+
+/* ── Navigasi atas ── */
+nav{
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  background:rgba(6,14,26,.96); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border); height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px;
+}
+.logo{
+  font-family:'Fredoka One',sans-serif; font-size:22px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.logo span{
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+/* Tombol navigasi ke halaman lain */
+.nav-links{ display:flex; gap:4px; }
+.nlink{
+  padding:5px 10px; border-radius:8px; border:none;
+  background:none; color:var(--muted); font-size:11px; font-weight:800;
+  cursor:pointer; font-family:inherit; transition:all .2s;
+  text-decoration:none; display:flex; align-items:center; gap:3px;
+}
+.nlink:hover{ color:var(--teal); background:rgba(0,229,204,.08); }
+.nlink.here{ color:var(--teal); background:rgba(0,229,204,.08); }
+
+/* ── Halaman utama ── */
+.page{ padding-top:56px; min-height:100vh; position:relative; z-index:1; }
+
+/* ── Hero section ── */
+.hero{
+  min-height:calc(100vh - 56px);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center; padding:24px 16px;
+  position:relative; overflow:hidden;
+}
+
+/* Rotasi latar konik */
+.hero-bg{ position:absolute; inset:0; z-index:0; overflow:hidden; }
+.hero-bg::before{
+  content:''; position:absolute; top:-50%; left:-50%;
+  width:200%; height:200%;
+  background:conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg,rgba(0,229,204,.03) 60deg,
+    transparent 120deg,rgba(255,140,66,.03) 180deg,
+    transparent 240deg,rgba(77,166,255,.03) 300deg,transparent 360deg);
+  animation:bgRot 22s linear infinite;
+}
+@keyframes bgRot{ to{ transform:rotate(360deg); } }
+
+/* Bola-bola angka melayang di latar */
+.float-balls{ position:absolute; inset:0; pointer-events:none; }
+.fball{
+  position:absolute; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Fredoka One',sans-serif;
+  animation:fballAnim var(--dur,8s) ease infinite var(--delay,0s); opacity:.45;
+}
+@keyframes fballAnim{
+  0%,100%{ transform:translate(0,0) rotate(0deg); }
+  25%{ transform:translate(var(--tx1,20px),var(--ty1,-30px)) rotate(90deg); }
+  50%{ transform:translate(var(--tx2,-15px),var(--ty2,20px)) rotate(180deg); }
+  75%{ transform:translate(var(--tx3,25px),var(--ty3,-10px)) rotate(270deg); }
+}
+
+/* Badge "Media Pembelajaran" */
+.hero-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  position:relative; z-index:1;
+  background:rgba(0,229,204,.1); border:1px solid rgba(0,229,204,.25);
+  color:var(--teal); padding:5px 14px; border-radius:100px;
+  font-size:10px; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; margin-bottom:16px;
+  animation:fadeUp .6s ease both;
+}
+
+/* Judul besar Jelajah Statistika */
+.hero-title{
+  font-family:'Fredoka One',sans-serif;
+  font-size:clamp(36px,8vw,70px); line-height:1;
+  margin-bottom:6px; position:relative; z-index:1;
+  animation:fadeUp .6s .1s ease both;
+}
+.ht1{
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.ht2{
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+
+/* Kalimat tagline */
+.hero-tagline{
+  font-size:14px; color:var(--muted); max-width:460px;
+  line-height:1.7; margin:0 auto 20px;
+  position:relative; z-index:1;
+  animation:fadeUp .6s .18s ease both;
+}
+
+/* Kotak tujuan pembelajaran */
+.tujuan{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:18px; padding:18px 20px;
+  max-width:500px; margin:0 auto 18px; text-align:left;
+  animation:fadeUp .6s .3s ease both;
+  position:relative; overflow:hidden; z-index:1;
+}
+.tujuan::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple));
+}
+.tujuan h4{
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:11px;
+  color:var(--orange); text-transform:uppercase;
+  letter-spacing:.09em; margin-bottom:10px;
+}
+.tj{ display:flex; gap:8px; margin-bottom:6px; font-size:13px; color:var(--text); line-height:1.5; }
+.tji{ color:var(--teal); font-size:13px; flex-shrink:0; margin-top:1px; }
+
+/* Tombol Mulai utama */
+.btn-start{
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  color:var(--bg); border:none; padding:14px 34px;
+  border-radius:13px; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:15px; cursor:pointer;
+  transition:all .25s; box-shadow:0 7px 24px rgba(0,229,204,.3);
+  position:relative; z-index:1;
+  animation:fadeUp .6s .4s ease both;
+  text-decoration:none; display:inline-block;
+}
+.btn-start:hover{ transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,229,204,.45); }
+.btn-start:active{ transform:scale(.97); }
+
+/* Grid menu navigasi cepat */
+.menu-grid{
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:10px; max-width:500px; margin:18px auto 0;
+  animation:fadeUp .6s .5s ease both;
+  position:relative; z-index:1;
+}
+@media(min-width:640px){ .menu-grid{ grid-template-columns:repeat(3,1fr); max-width:760px; } }
+
+/* Kartu tiap menu */
+.mc{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:14px 12px; cursor:pointer;
+  transition:all .25s; text-align:left;
+  position:relative; overflow:hidden;
+  text-decoration:none; color:inherit; display:block;
+}
+.mc::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,var(--mc-c,var(--teal)) 0%,transparent 70%);
+  opacity:0; transition:opacity .3s;
+}
+.mc:hover{
+  transform:translateY(-4px); border-color:var(--mc-c,var(--teal));
+  box-shadow:0 10px 28px rgba(0,0,0,.3);
+}
+.mc:hover::after{ opacity:.06; }
+.mc-step{ font-size:9px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
+.mc-icon{ font-size:24px; margin-bottom:5px; }
+.mc-title{ font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; color:var(--white); margin-bottom:2px; }
+.mc-desc{ font-size:10px; color:var(--muted); line-height:1.4; }
+
+/* Animasi masuk */
+/* ═════════ STATISTIK BACKGROUND ═════════ */
+
+.stats-bg{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  z-index:0;
+}
+
+/* Diagram batang */
+.bar{
+  position:absolute;
+  bottom:-20px;
+  width:70px;
+  border-radius:20px 20px 0 0;
+  animation:barAnim 4s ease-in-out infinite;
+  opacity:.18;
+}
+
+.b1{
+  left:10%;
+  height:180px;
+  background:linear-gradient(to top,#ff66c4,#ffb3e6);
+}
+
+.b2{
+  left:28%;
+  height:260px;
+  background:linear-gradient(to top,#8ec5ff,#cde7ff);
+  animation-delay:.5s;
+}
+
+.b3{
+  left:50%;
+  height:140px;
+  background:linear-gradient(to top,#72f1b8,#c7ffe5);
+  animation-delay:1s;
+}
+
+.b4{
+  left:72%;
+  height:300px;
+  background:linear-gradient(to top,#ffd166,#fff0b3);
+  animation-delay:1.5s;
+}
+
+@keyframes barAnim{
+  0%,100%{
+    transform:scaleY(1);
+  }
+  50%{
+    transform:scaleY(1.15);
+  }
+}
+
+/* Tulisan statistik */
+.stat{
+  position:absolute;
+  font-family:'Fredoka One',sans-serif;
+  font-size:42px;
+  opacity:.08;
+  animation:floatText 8s ease-in-out infinite;
+}
+
+.mean{
+  top:12%;
+  left:8%;
+  color:#ff66c4;
+}
+
+.median{
+  top:30%;
+  right:10%;
+  color:#8ec5ff;
+  animation-delay:1s;
+}
+
+.modus{
+  bottom:18%;
+  left:35%;
+  color:#ffd166;
+  animation-delay:2s;
+}
+
+@keyframes floatText{
+  0%,100%{
+    transform:translateY(0px);
+  }
+  50%{
+    transform:translateY(-18px);
+  }
+}
+
+/* Glow bulat */
+.circle{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(8px);
+  opacity:.18;
+  animation:floatCircle 10s ease-in-out infinite;
+}
+
+.c1{
+  width:180px;
+  height:180px;
+  background:#ff66c4;
+  top:10%;
+  right:8%;
+}
+
+.c2{
+  width:220px;
+  height:220px;
+  background:#8ec5ff;
+  bottom:12%;
+  left:5%;
+  animation-delay:2s;
+}
+
+.c3{
+  width:150px;
+  height:150px;
+  background:#d9a3ff;
+  top:45%;
+  left:45%;
+  animation-delay:4s;
+}
+
+@keyframes floatCircle{
+  0%,100%{
+    transform:translateY(0px) translateX(0px);
+  }
+  50%{
+    transform:translateY(-25px) translateX(10px);
+  }
+}
+@keyframes fadeUp{ from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+
+/* ── Tombol Petunjuk ── */
+.btn-guide{
+  background:transparent;
+  color:var(--purple);
+  border:2px solid rgba(217,163,255,.45);
+  padding:11px 28px;
+  border-radius:13px;
+  font-family:'Nunito',sans-serif;
+  font-weight:800; font-size:14px;
+  cursor:pointer;
+  transition:all .25s;
+  position:relative; z-index:1;
+  animation:fadeUp .6s .46s ease both;
+  display:inline-block;
+  margin-top:10px;
+  letter-spacing:.01em;
+}
+.btn-guide:hover{
+  background:rgba(217,163,255,.12);
+  border-color:var(--purple);
+  color:#e8c0ff;
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(217,163,255,.25);
+}
+.btn-guide:active{ transform:scale(.97); }
+
+/* ── Modal Overlay ── */
+.modal-overlay{
+  position:fixed; inset:0; z-index:900;
+  background:rgba(10,4,18,.75);
+  backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  opacity:0; pointer-events:none;
+  transition:opacity .3s ease;
+}
+.modal-overlay.show{
+  opacity:1; pointer-events:all;
+}
+
+/* ── Modal Box ── */
+.modal-box{
+  background:linear-gradient(145deg,#261535,#1e1030);
+  border:1px solid rgba(217,163,255,.22);
+  border-radius:24px;
+  width:100%; max-width:600px;
+  max-height:88vh;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+  transform:translateY(32px) scale(.97);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+  opacity:0;
+}
+.modal-overlay.show .modal-box{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+
+/* Header modal */
+.modal-header{
+  padding:20px 22px 16px;
+  border-bottom:1px solid rgba(217,163,255,.12);
+  background:linear-gradient(135deg,rgba(217,163,255,.07),rgba(142,197,255,.05));
+  flex-shrink:0;
+  position:relative;
+}
+.modal-header::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,#ff66c4,#d9a3ff,#8ec5ff,#ffd166);
+}
+.modal-title{
+  font-family:'Fredoka One',sans-serif;
+  font-size:20px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:3px;
+}
+.modal-subtitle{
+  font-size:11px; color:var(--muted); font-weight:600;
+  letter-spacing:.05em;
+}
+
+/* Body modal scrollable */
+.modal-body{
+  overflow-y:auto; padding:18px 22px;
+  flex:1;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(217,163,255,.3) transparent;
+}
+.modal-body::-webkit-scrollbar{ width:5px; }
+.modal-body::-webkit-scrollbar-track{ background:transparent; }
+.modal-body::-webkit-scrollbar-thumb{ background:rgba(217,163,255,.3); border-radius:10px; }
+
+/* Seksi dalam modal */
+.guide-section{ margin-bottom:20px; }
+.guide-section:last-child{ margin-bottom:0; }
+
+.guide-section-title{
+  font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:12px;
+  text-transform:uppercase; letter-spacing:.09em;
+  margin-bottom:10px;
+  display:flex; align-items:center; gap:6px;
+}
+.gs-steps .guide-section-title{ color:var(--blue); }
+.gs-tujuan .guide-section-title{ color:var(--yellow); }
+.gs-tips  .guide-section-title{ color:var(--teal); }
+
+/* Daftar langkah */
+.step-list{ display:flex; flex-direction:column; gap:7px; }
+.step-item{
+  display:flex; gap:10px; align-items:flex-start;
+  background:rgba(255,255,255,.03); border-radius:10px;
+  padding:9px 11px;
+  border:1px solid rgba(255,255,255,.05);
+  font-size:12.5px; color:var(--text); line-height:1.55;
+  transition:background .2s;
+}
+.step-item:hover{ background:rgba(142,197,255,.06); }
+.step-num{
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff; font-family:'Fredoka One',sans-serif;
+  font-size:11px; min-width:22px; height:22px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+
+/* Daftar bullet */
+.bullet-list{ display:flex; flex-direction:column; gap:6px; }
+.bullet-item{
+  display:flex; gap:8px; font-size:12.5px;
+  color:var(--text); line-height:1.5;
+}
+.bullet-dot{
+  flex-shrink:0; margin-top:5px; width:6px; height:6px;
+  border-radius:50%; background:currentColor;
+}
+.gs-tujuan .bullet-dot{ color:var(--yellow); }
+.gs-tips  .bullet-dot{ color:var(--teal); }
+
+/* Divider */
+.guide-divider{
+  height:1px; background:rgba(217,163,255,.1);
+  margin:16px 0;
+}
+
+/* Footer modal */
+.modal-footer{
+  padding:14px 22px 18px;
+  border-top:1px solid rgba(217,163,255,.1);
+  display:flex; justify-content:center;
+  flex-shrink:0;
+  background:rgba(0,0,0,.15);
+}
+.btn-close-modal{
+  background:linear-gradient(135deg,#d9a3ff,#8ec5ff);
+  color:#1b1024; border:none;
+  padding:12px 40px; border-radius:12px;
+  font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:14px;
+  cursor:pointer; transition:all .2s;
+  box-shadow:0 6px 20px rgba(217,163,255,.35);
+  letter-spacing:.02em;
+}
+.btn-close-modal:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(217,163,255,.5);
+}
+.btn-close-modal:active{ transform:scale(.97); }
+
+/* Responsif mobile */
+@media(max-width:480px){
+  .modal-box{ border-radius:20px; }
+  .modal-header{ padding:16px 16px 13px; }
+  .modal-body{ padding:14px 16px; }
+  .modal-footer{ padding:12px 16px 16px; }
+  .modal-title{ font-size:17px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Kanvas partikel latar -->
+
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="logo">Jelajah<span>Statistika</span></div>
+
+  <div class="nav-links">
+    <a class="nlink" href="01-beranda.html">🏠 Beranda</a>
+    <a class="nlink" href="02-pretest.html">📝 Pretest</a>
+    <a class="nlink" href="03-cerita.html">📖 Cerita</a>
+    <a class="nlink" href="04-materi.html">📚 Materi</a>
+    <a class="nlink" href="05-simulasi.html">🎮 Simulasi</a>
+    <a class="nlink" href="06-latihan.html">🔬 Latihan</a>
+    <a class="nlink" href="07-posttest.html">📝 Posttest</a>
+    <a class="nlink" href="08-developer.html">👤 Profil</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════
+     HALAMAN BERANDA
+     ════════════════════════════════════ -->
+<div class="page">
+  <div class="hero">
+    <div class="stats-bg">
+  <div class="bar b1"></div>
+  <div class="bar b2"></div>
+  <div class="bar b3"></div>
+  <div class="bar b4"></div>
+
+  <div class="stat mean">Mean</div>
+  <div class="stat median">Median</div>
+  <div class="stat modus">Modus</div>
+
+  <div class="circle c1"></div>
+  <div class="circle c2"></div>
+  <div class="circle c3"></div>
+</div>
+    <!-- Rotasi latar -->
+    <div class="hero-bg"></div>
+    <!-- Bola angka melayang -->
+    <div class="float-balls" id="floatBalls"></div>
+
+    <!-- Badge atas -->
+    <div class="hero-badge">✨ Media Pembelajaran Interaktif · Kelas VII–VIII SMP</div>
+
+    <!-- Judul -->
+    <div class="hero-title">
+      <span class="ht1">Jelajah</span><span class="ht2">Statistika</span>
+    </div>
+
+    <!-- Tagline -->
+    <p class="hero-tagline">
+      Pahami <strong>Mean, Median & Modus</strong> bukan lewat hafalan rumus —
+      tapi dari <em>cerita nyata</em>, simulasi animasi, dan game seru yang bikin penasaran!
+    </p>
+
+    <!-- Tujuan pembelajaran -->
+    <div class="tujuan">
+      <h4>🎯 Tujuan Pembelajaran</h4>
+      <div class="tj"><span class="tji">✦</span><span>Menentukan mean, median, dan modus dari berbagai data</span></div>
+      <div class="tj"><span class="tji">✦</span><span>Mengidentifikasi nilai ekstrem dan dampaknya pada ukuran pemusatan</span></div>
+      <div class="tj"><span class="tji">✦</span><span>Membandingkan perubahan ketiga ukuran secara visual & interaktif</span></div>
+      <div class="tj"><span class="tji">✦</span><span>Memilih ukuran pemusatan yang paling tepat untuk konteks tertentu</span></div>
+    </div>
+
+    <!-- Tombol mulai -->
+    <a class="btn-start" href="02-cerita.html">🚀 Mulai Petualangan!</a>
+    <!-- Tombol Petunjuk Penggunaan -->
+    <button class="btn-guide" onclick="openGuide()">📖 Petunjuk Penggunaan</button>
+
+    <!-- Grid menu -->
+    <div class="menu-grid">
+      <a class="mc" href="02-pretest.html" style="--mc-c:var(--teal)">
+        <div class="mc-step">Langkah 1</div>
+        <div class="mc-icon">📝</div>
+        <div class="mc-title">Pretest</div>
+        <div class="mc-desc">Ukur kemampuan awal sebelum belajar</div>
+      </a>
+      <a class="mc" href="03-cerita.html" style="--mc-c:var(--orange)">
+        <div class="mc-step">Langkah 2</div>
+        <div class="mc-icon">📖</div>
+        <div class="mc-title">Cerita Animasi</div>
+        <div class="mc-desc">3 cerita nyata: warung, kelas, toko</div>
+      </a>
+      <a class="mc" href="04-materi.html" style="--mc-c:var(--blue)">
+        <div class="mc-step">Langkah 3</div>
+        <div class="mc-icon">📚</div>
+        <div class="mc-title">Materi Lengkap</div>
+        <div class="mc-desc">Rumus, contoh & tabel perbandingan</div>
+      </a>
+      <a class="mc" href="05-simulasi.html" style="--mc-c:var(--green)">
+        <div class="mc-step">Langkah 4</div>
+        <div class="mc-icon">🔬</div>
+        <div class="mc-title">Simulasi</div>
+        <div class="mc-desc">Input data · grafik animasi langsung</div>
+      </a>
+      <a class="mc" href="06-latihan.html" style="--mc-c:var(--yellow)">
+        <div class="mc-step">Langkah 5</div>
+        <div class="mc-icon">🎮</div>
+        <div class="mc-title">Latihan & Game</div>
+        <div class="mc-desc">Kuis soal + Speed Game ⭐</div>
+      </a>
+      <a class="mc" href="07-posttest.html" style="--mc-c:var(--purple)">
+        <div class="mc-step">Langkah 6</div>
+        <div class="mc-icon">📝</div>
+        <div class="mc-title">Posttest</div>
+        <div class="mc-desc">Ukur peningkatan hasil belajarmu</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — PETUNJUK PENGGUNAAN
+     ════════════════════════════════════ -->
+<div class="modal-overlay" id="guideModal" onclick="handleOverlayClick(event)">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <div class="modal-title">📖 Petunjuk Penggunaan</div>
+      <div class="modal-subtitle">Selamat datang di media pembelajaran Jelajah Statistika ✨</div>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Langkah-langkah -->
+      <div class="guide-section gs-steps">
+        <div class="guide-section-title">🗺️ Langkah-Langkah Belajar</div>
+        <div class="step-list">
+          <div class="step-item"><div class="step-num">1</div><span>Baca informasi pada halaman <strong>Beranda</strong> untuk memahami tujuan dan alur pembelajaran.</span></div>
+          <div class="step-item"><div class="step-num">2</div><span>Kerjakan <strong>Pretest</strong> untuk mengetahui kemampuan awal sebelum mempelajari materi statistika.</span></div>
+          <div class="step-item"><div class="step-num">3</div><span>Ikuti <strong>Cerita Animasi</strong> untuk memahami penerapan statistika dalam kehidupan sehari-hari.</span></div>
+          <div class="step-item"><div class="step-num">4</div><span>Pelajari materi <strong>Mean (Rata-rata)</strong>, <strong>Median</strong>, dan <strong>Modus</strong> secara berurutan.</span></div>
+          <div class="step-item"><div class="step-num">5</div><span>Gunakan <strong>Simulasi Interaktif</strong> untuk mencoba berbagai data dan melihat perubahan hasil secara langsung.</span></div>
+          <div class="step-item"><div class="step-num">6</div><span>Kerjakan <strong>Latihan dan Game</strong> untuk menguji pemahaman terhadap materi yang telah dipelajari.</span></div>
+          <div class="step-item"><div class="step-num">7</div><span>Selesaikan <strong>Posttest</strong> untuk mengetahui peningkatan hasil belajar setelah mengikuti seluruh kegiatan.</span></div>
+          <div class="step-item"><div class="step-num">8</div><span>Kunjungi halaman <strong>Profil Developer</strong> untuk mengetahui informasi pengembang media pembelajaran.</span></div>
+        </div>
+      </div>
+
+      <div class="guide-divider"></div>
+
+      <!-- Tujuan Pembelajaran -->
+      <div class="guide-section gs-tujuan">
+        <div class="guide-section-title">🎯 Tujuan Pembelajaran</div>
+        <div class="bullet-list">
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Memahami konsep <strong>Mean</strong>, <strong>Median</strong>, dan <strong>Modus</strong>.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Menentukan ukuran pemusatan data dengan tepat.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Menganalisis data sederhana dalam kehidupan sehari-hari.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Mengembangkan kemampuan berpikir logis dan matematis.</span></div>
+        </div>
+      </div>
+
+      <div class="guide-divider"></div>
+
+      <!-- Tips Belajar -->
+      <div class="guide-section gs-tips">
+        <div class="guide-section-title">💡 Tips Belajar</div>
+        <div class="bullet-list">
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Pelajari materi secara <strong>berurutan</strong> dari awal hingga akhir.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Perhatikan <strong>contoh soal</strong> yang diberikan di setiap materi.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Gunakan <strong>simulasi</strong> untuk memperdalam pemahaman konsep.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span>Kerjakan latihan secara <strong>mandiri</strong> sebelum melihat pembahasan.</span></div>
+          <div class="bullet-item"><div class="bullet-dot"></div><span><strong>Ulangi</strong> materi yang belum dipahami hingga benar-benar mengerti.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-close-modal" onclick="closeGuide()">✅ Saya Mengerti!</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   MODAL — PETUNJUK PENGGUNAAN
+   ════════════════════════════════════ */
+function openGuide(){
+  const mo = document.getElementById('guideModal');
+  mo.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeGuide(){
+  const mo = document.getElementById('guideModal');
+  mo.classList.remove('show');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e){
+  if(e.target === document.getElementById('guideModal')) closeGuide();
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeGuide();
+});
+</script>
+
+<script>
+/* ════════════════════════════════════
+   BERANDA — JavaScript
+   Kanvas bintang + bola angka melayang
+   ════════════════════════════════════ */
+
+/* ── Bola angka melayang ── */
+function initFloatBalls() {
+  const fb = document.getElementById('floatBalls');
+  const items = [
+    { v:75,  c:'#00e5cc', x:'10%', y:'20%', sz:44, tx1:'28px', ty1:'-22px', tx2:'-14px', ty2:'24px',  tx3:'18px',  ty3:'-32px', dur:'9s',  delay:'0s'  },
+    { v:82,  c:'#4da6ff', x:'84%', y:'26%', sz:38, tx1:'-22px',ty1:'18px',  tx2:'18px',  ty2:'-28px', tx3:'-10px', ty3:'14px',  dur:'11s', delay:'1s'  },
+    { v:68,  c:'#ff8c42', x:'6%',  y:'65%', sz:42, tx1:'18px', ty1:'-22px', tx2:'-18px', ty2:'18px',  tx3:'28px',  ty3:'-12px', dur:'8s',  delay:'2s'  },
+    { v:90,  c:'#c77dff', x:'88%', y:'68%', sz:36, tx1:'-12px',ty1:'28px',  tx2:'22px',  ty2:'-18px', tx3:'-18px', ty3:'8px',   dur:'13s', delay:'.5s' },
+    { v:76,  c:'#06d6a0', x:'50%', y:'8%',  sz:40, tx1:'14px', ty1:'-28px', tx2:'-22px', ty2:'12px',  tx3:'18px',  ty3:'-18px', dur:'10s', delay:'1.5s'},
+    { v:200, c:'#ff4d6d', x:'28%', y:'78%', sz:34, tx1:'-16px',ty1:'20px',  tx2:'20px',  ty2:'-14px', tx3:'-8px',  ty3:'18px',  dur:'12s', delay:'.8s' },
+  ];
+  fb.innerHTML = items.map(it =>
+    `<div class="fball" style="
+      left:${it.x}; top:${it.y}; width:${it.sz}px; height:${it.sz}px;
+      background:radial-gradient(circle at 35% 35%,${it.c}30,${it.c}08);
+      border:2px solid ${it.c}40; color:${it.c};
+      font-size:${Math.round(it.sz * .34)}px;
+      --tx1:${it.tx1}; --ty1:${it.ty1};
+      --tx2:${it.tx2}; --ty2:${it.ty2};
+      --tx3:${it.tx3}; --ty3:${it.ty3};
+      --dur:${it.dur}; --delay:${it.delay};
+    ">${it.v}</div>`
+  ).join('');
+}
+initFloatBalls();
+</script>
+</body>
+</html>

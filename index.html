@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatXplore — Pilih Halaman</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Variabel warna global ── */
+:root{
+  --bg:#060e1a; --card:#0d1f35; --card2:#122640;
+  --border:rgba(255,255,255,.06);
+  --teal:#00e5cc; --orange:#ff8c42; --yellow:#ffd166;
+  --blue:#4da6ff; --green:#06d6a0; --purple:#c77dff;
+  --pink:#ff6b9d; --red:#ff4d6d;
+  --text:#dde8f5; --muted:#3d5a7a; --white:#f0f8ff;
+}
+
+/* ── Reset ── */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Nunito Sans',sans-serif;
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:24px;
+}
+
+/* ── Judul ── */
+.logo{
+  font-family:'Fredoka One',sans-serif; font-size:42px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  text-align:center; margin-bottom:6px;
+}
+.logo span{
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.subtitle{
+  text-align:center; color:var(--muted); font-size:13px; margin-bottom:36px;
+}
+
+/* ── Grid menu ── */
+.grid{
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:12px; max-width:560px; width:100%;
+}
+@media(min-width:640px){ .grid{grid-template-columns:repeat(3,1fr);} }
+
+/* ── Kartu per halaman ── */
+.card{
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:18px; padding:22px 18px; text-align:center;
+  cursor:pointer; text-decoration:none; color:inherit;
+  transition:all .25s; display:block;
+  position:relative; overflow:hidden;
+}
+.card::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,var(--c,var(--teal)) 0%,transparent 70%);
+  opacity:0; transition:opacity .3s;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:var(--c,var(--teal));
+  box-shadow:0 12px 32px rgba(0,0,0,.35);
+}
+.card:hover::before{ opacity:.07; }
+
+.card-step{
+  font-size:9px; font-weight:800; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px;
+}
+.card-icon{ font-size:34px; margin-bottom:10px; }
+.card-title{
+  font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:15px; color:var(--white); margin-bottom:4px;
+}
+.card-desc{ font-size:11px; color:var(--muted); line-height:1.5; }
+
+/* ── Badge warna aksen ── */
+.badge-num{
+  position:absolute; top:10px; right:10px;
+  width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:900; color:var(--bg);
+  background:var(--c,var(--teal));
+}
+
+/* ── Footer ── */
+.footer{
+  margin-top:32px; text-align:center;
+  font-size:11px; color:var(--muted);
+}
+</style>
+</head>
+<body>
+
+<div class="logo">Stat<span>Xplore</span></div>
+<p class="subtitle">Pilih halaman yang ingin dibuka · Setiap file berdiri sendiri</p>
+
+<div class="grid">
+
+  <!-- 1. Beranda -->
+  <a class="card" href="01-beranda.html" style="--c:var(--teal)">
+    <div class="badge-num">1</div>
+    <div class="card-step">Halaman 1</div>
+    <div class="card-icon">🏠</div>
+    <div class="card-title">Beranda</div>
+    <div class="card-desc">Hero, tujuan pembelajaran & menu navigasi cepat</div>
+  </a>
+
+  <!-- 2. Cerita -->
+  <a class="card" href="02-cerita.html" style="--c:var(--orange)">
+    <div class="badge-num">2</div>
+    <div class="card-step">Halaman 2</div>
+    <div class="card-icon">📖</div>
+    <div class="card-title">Cerita Animasi</div>
+    <div class="card-desc">3 cerita interaktif: Warung, Kelas 8B, Toko</div>
+  </a>
+
+  <!-- 3. Materi -->
+  <a class="card" href="03-materi.html" style="--c:var(--blue)">
+    <div class="badge-num">3</div>
+    <div class="card-step">Halaman 3</div>
+    <div class="card-icon">📚</div>
+    <div class="card-title">Materi Lengkap</div>
+    <div class="card-desc">Mean · Median · Modus · Nilai Ekstrem</div>
+  </a>
+
+  <!-- 4. Simulasi -->
+  <a class="card" href="04-simulasi.html" style="--c:var(--green)">
+    <div class="badge-num">4</div>
+    <div class="card-step">Halaman 4</div>
+    <div class="card-icon">🔬</div>
+    <div class="card-title">Simulasi</div>
+    <div class="card-desc">Input data bebas · grafik animasi real-time</div>
+  </a>
+
+  <!-- 5. Latihan -->
+  <a class="card" href="05-latihan.html" style="--c:var(--yellow)">
+    <div class="badge-num">5</div>
+    <div class="card-step">Halaman 5</div>
+    <div class="card-icon">🎮</div>
+    <div class="card-title">Latihan & Game</div>
+    <div class="card-desc">Kuis CRUD soal + Speed Game berhadiah ⭐</div>
+  </a>
+
+  <!-- 6. Developer -->
+  <a class="card" href="06-developer.html" style="--c:var(--purple)">
+    <div class="badge-num">6</div>
+    <div class="card-step">Halaman 6</div>
+    <div class="card-icon">👤</div>
+    <div class="card-title">Developer</div>
+    <div class="card-desc">Profil pembuat & info proyek</div>
+  </a>
+
+</div>
+
+<div class="footer">
+  StatXplore Ultra Enhanced · Barrotut Taqiyah · NIM 241001015<br>
+  Buka masing-masing file di browser — tidak perlu server
+</div>
+
+</body>
+</html>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatXplore — Simulasi Interaktif</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060e1a;--card:#0d1f35;--card2:#122640;
+  --border:rgba(255,255,255,.06);
+  --teal:#00e5cc;--orange:#ff8c42;--yellow:#ffd166;
+  --blue:#4da6ff;--green:#06d6a0;--purple:#c77dff;
+  --red:#ff4d6d;--text:#dde8f5;--muted:#3d5a7a;--white:#f0f8ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,229,204,.04),transparent 60%),radial-gradient(ellipse 50% 30% at 80% 70%,rgba(255,140,66,.04),transparent 60%);pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(6,14,26,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;}
+.logo{font-family:'Fredoka One',sans-serif;font-size:20px;background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo span{background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:flex;gap:3px;}
+.nlink{padding:5px 9px;border-radius:7px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s;text-decoration:none;display:flex;align-items:center;}
+.nlink:hover{color:var(--teal);background:rgba(0,229,204,.08);}
+.nlink.here{color:var(--green);background:rgba(6,214,160,.08);}
+
+/* LAYOUT */
+.page{padding-top:56px;min-height:100vh;position:relative;z-index:1;}
+.pw{max-width:860px;margin:0 auto;padding:18px 14px 60px;}
+.ph{margin-bottom:18px;}
+.ph h2{font-family:'Fredoka One',sans-serif;font-size:24px;color:var(--white);margin-bottom:2px;}
+.ph p{font-size:13px;color:var(--muted);}
+
+/* ── PANEL INPUT ── */
+.sim-inp{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:18px;margin-bottom:14px;
+}
+.sim-section-title{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+  color:var(--white);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:10px;display:flex;align-items:center;gap:7px;
+}
+.cdot{width:7px;height:7px;border-radius:50%;background:var(--c-acc,var(--teal));box-shadow:0 0 6px var(--c-acc,var(--teal));}
+
+/* Tombol preset data contoh */
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;}
+.pbtn{
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--muted);padding:6px 13px;border-radius:18px;
+  font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.pbtn:hover{color:var(--teal);border-color:rgba(0,229,204,.35);background:rgba(0,229,204,.04);}
+
+/* Input angka + tombol tambah */
+.inp-grp{display:flex;gap:7px;margin-bottom:10px;}
+.inp-grp input{
+  flex:1;background:rgba(0,0,0,.4);border:1.5px solid var(--border);
+  color:var(--white);padding:12px 14px;border-radius:11px;
+  font-size:17px;font-family:inherit;outline:none;transition:all .25s;
+}
+.inp-grp input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,204,.07);}
+.btn-add{
+  background:linear-gradient(135deg,var(--teal),#0097a7);
+  color:var(--bg);border:none;padding:12px 16px;border-radius:11px;
+  font-weight:900;font-size:24px;cursor:pointer;
+  transition:all .2s;line-height:1;
+  box-shadow:0 4px 12px rgba(0,229,204,.28);
+}
+.btn-add:hover{transform:scale(1.08);}
+.btn-add:active{transform:scale(.95);}
+
+/* Bola data */
+.balls-row{display:flex;flex-wrap:wrap;gap:8px;min-height:54px;margin-bottom:9px;align-items:center;}
+.dball{
+  width:48px;height:48px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .2s;
+  animation:ballIn .35s cubic-bezier(.34,1.56,.64,1);
+  position:relative;flex-shrink:0;
+}
+@keyframes ballIn{from{transform:scale(0) rotate(-200deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.dball.dn{background:radial-gradient(circle at 35% 35%,var(--card2),#0a1828);border:2px solid rgba(0,229,204,.35);color:var(--teal);}
+.dball.dm{background:radial-gradient(circle at 35% 35%,rgba(77,166,255,.2),rgba(77,166,255,.05));border:2px solid rgba(77,166,255,.6);color:var(--blue);}
+.dball.de{background:radial-gradient(circle at 35% 35%,rgba(255,140,66,.25),rgba(255,140,66,.05));border:2px solid var(--orange);color:var(--orange);box-shadow:0 0 14px rgba(255,140,66,.3);animation:ballIn .35s cubic-bezier(.34,1.56,.64,1),wobble .5s ease .35s;}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+.dball:hover::after{content:'✕';position:absolute;inset:0;border-radius:50%;background:rgba(255,77,109,.25);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--red);}
+.dball:hover{transform:scale(1.15);}
+.bc{font-size:11px;color:var(--muted);font-family:monospace;margin-bottom:11px;}
+
+/* Input nilai ekstrem */
+.ext-box{background:rgba(255,140,66,.06);border:1.5px dashed rgba(255,140,66,.35);border-radius:13px;padding:14px;margin-bottom:11px;}
+.ext-lbl{font-size:11px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;}
+.ext-hint{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.6;}
+.ext-row{display:flex;gap:7px;}
+.ext-row input{flex:1;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,140,66,.4);color:var(--white);padding:11px 14px;border-radius:10px;font-size:16px;font-family:inherit;outline:none;transition:all .2s;}
+.ext-row input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,66,.1);}
+.btn-ext{background:linear-gradient(135deg,var(--orange),#e05a00);color:white;border:none;padding:11px 16px;border-radius:10px;font-size:21px;cursor:pointer;box-shadow:0 3px 10px rgba(255,140,66,.3);transition:all .2s;}
+.btn-ext:hover{transform:scale(1.08);}
+
+/* Tombol reset */
+.sim-rst{width:100%;padding:10px;border-radius:11px;border:1.5px solid var(--border);color:var(--muted);background:transparent;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.sim-rst:hover{color:var(--red);border-color:rgba(255,77,109,.4);}
+
+/* ── KARTU STATISTIK 3 KOLOM ── */
+.sc3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.sc{background:var(--card);border:1.5px solid var(--border);border-radius:15px;padding:14px 8px;text-align:center;transition:all .4s;position:relative;overflow:hidden;}
+.sc .sglow{position:absolute;inset:0;opacity:0;transition:opacity .4s;pointer-events:none;border-radius:14px;}
+.sc.shot .sglow{opacity:1;}
+.sc.shot{border-color:var(--sc-c,var(--teal));box-shadow:0 0 22px rgba(0,229,204,.15);}
+.sc-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;}
+.sc-v{font-family:'Fredoka One',sans-serif;font-size:25px;min-height:31px;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.sc-v.pop{animation:scPop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes scPop{0%,100%{transform:scale(1)}45%{transform:scale(1.28)}}
+.sc-d{font-size:10px;font-family:monospace;font-weight:800;min-height:14px;margin-top:2px;}
+
+/* ── DIAGRAM BATANG ── */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:6px;}
+.chart-ttl{font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--white);text-transform:uppercase;letter-spacing:.06em;}
+.legs{display:flex;gap:10px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-weight:700;}
+.ld{width:9px;height:9px;border-radius:2px;}
+
+/* Area diagram */
+.bars-area{display:flex;align-items:flex-end;gap:10px;height:160px;position:relative;padding-bottom:28px;}
+.bg-g{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;}
+.bar-trk{width:100%;position:absolute;bottom:0;border-radius:8px 8px 0 0;background:rgba(255,255,255,.03);}
+.bar-snp{width:100%;position:absolute;bottom:0;border-radius:8px 8px 0 0;border:1.5px dashed;opacity:.28;transition:height .7s cubic-bezier(.34,1.56,.64,1);}
+.bar-fill{width:100%;position:absolute;bottom:0;border-radius:8px 8px 0 0;transition:height .7s cubic-bezier(.34,1.56,.64,1);min-height:5px;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;}
+.bf-m{background:linear-gradient(180deg,rgba(0,229,204,.9),rgba(0,229,204,.3));}
+.bf-me{background:linear-gradient(180deg,rgba(77,166,255,.9),rgba(77,166,255,.3));}
+.bf-mo{background:linear-gradient(180deg,rgba(6,214,160,.9),rgba(6,214,160,.3));}
+.bv{font-family:'Nunito',sans-serif;font-weight:900;font-size:10px;color:rgba(255,255,255,.9);white-space:nowrap;}
+.bx{position:absolute;bottom:-22px;font-size:10.5px;font-weight:800;text-align:center;width:100%;}
+
+/* ── GARIS BILANGAN ── */
+.nl{position:relative;height:94px;margin-top:6px;}
+.nll{position:absolute;left:18px;right:18px;top:52px;height:2px;background:var(--border);border-radius:1px;}
+.ntick{position:absolute;width:1px;height:9px;background:rgba(255,255,255,.1);top:48px;}
+.ntlbl{position:absolute;font-size:8px;color:var(--muted);font-family:monospace;top:60px;transform:translateX(-50%);}
+.ndot{position:absolute;width:13px;height:13px;border-radius:50%;top:46px;transform:translateX(-50%);transition:left .55s cubic-bezier(.34,1.56,.64,1);border:2px solid;}
+.ndot.nd{background:rgba(0,229,204,.15);border-color:rgba(0,229,204,.5);}
+.ndot.ne{background:rgba(255,140,66,.15);border-color:var(--orange);animation:ndPulse 1s ease infinite;}
+@keyframes ndPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,140,66,.4)}50%{box-shadow:0 0 0 5px rgba(255,140,66,0)}}
+.nmark{position:absolute;top:10px;width:2px;height:44px;border-radius:1px;transform:translateX(-50%);transition:left .55s cubic-bezier(.34,1.56,.64,1);}
+.nml{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;font-family:'Nunito',sans-serif;padding:2px 7px;border-radius:4px;white-space:nowrap;border:1px solid;}
+
+/* ── STEPS PERHITUNGAN ── */
+.steps-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;}
+.steps-in{background:rgba(0,0,0,.22);border-radius:9px;padding:13px 15px;}
+.sr{font-size:11.5px;font-family:monospace;color:#5a7a9a;line-height:1.9;}
+.sr b{color:var(--teal);}
+.empty{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+
+/* ── TABEL PERBANDINGAN ── */
+.cmp{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;display:none;}
+.cmp.show{display:block;animation:pgIn .4s ease;}
+@keyframes pgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ctitle{font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--white);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.ctbl{width:100%;border-collapse:collapse;font-size:12px;}
+.ctbl th{padding:7px 9px;background:rgba(0,0,0,.2);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;text-align:left;}
+.ctbl td{padding:9px 9px;border-top:1px solid var(--border);}
+.ctbl .crow td{background:rgba(255,140,66,.05);}
+.cbadge{display:inline-block;background:var(--orange);color:var(--bg);font-size:8px;font-weight:900;padding:2px 6px;border-radius:3px;margin-left:4px;}
+.cup{color:var(--orange);font-weight:800;}
+.cdn{color:var(--blue);font-weight:800;}
+
+/* ── REFLEKSI & KESIMPULAN ── */
+.refl{background:rgba(0,229,204,.06);border:1px solid rgba(0,229,204,.18);border-radius:14px;padding:14px;margin-bottom:14px;display:none;}
+.refl.show{display:block;animation:pgIn .4s ease;}
+.refl-q{font-size:13px;color:#99f6e4;font-style:italic;line-height:1.7;margin-bottom:9px;}
+.refl-btn{background:none;border:1px solid rgba(0,229,204,.3);color:var(--teal);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s;}
+.refl-btn:hover{background:rgba(0,229,204,.1);}
+.refl-ans{margin-top:9px;background:rgba(0,0,0,.25);border-radius:9px;padding:12px;font-size:13px;color:#cbd5e1;line-height:1.8;display:none;}
+.refl-ans.show{display:block;animation:pgIn .3s ease;}
+.konk{background:linear-gradient(135deg,rgba(0,229,204,.08),rgba(255,140,66,.05));border:1.5px solid rgba(0,229,204,.25);border-radius:16px;padding:18px;margin-bottom:14px;display:none;}
+.konk.show{display:block;animation:pgIn .5s ease;}
+.konk h3{font-family:'Fredoka One',sans-serif;font-size:17px;color:var(--teal);margin-bottom:7px;}
+.konk p{font-size:13px;color:#cbd5e1;line-height:1.8;}
+.ks{display:inline-block;font-family:monospace;font-weight:800;padding:2px 8px;border-radius:5px;}
+
+/* Tombol lanjut */
+.abtn-next{width:100%;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--teal),var(--blue));color:var(--bg);font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 5px 18px rgba(0,229,204,.25);transition:all .25s;margin-top:4px;text-decoration:none;display:block;text-align:center;}
+.abtn-next:hover{transform:translateY(-2px);box-shadow:0 9px 26px rgba(0,229,204,.35);}
+
+/* Partikel */
+#particles{position:fixed;inset:0;z-index:100;pointer-events:none;}
+#confettiC{position:fixed;inset:0;z-index:101;pointer-events:none;}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<canvas id="confettiC"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Stat<span>Xplore</span></div>
+  <div class="nav-links">
+    <a class="nlink" href="01-beranda.html">🏠</a>
+    <a class="nlink" href="02-cerita.html">📖</a>
+    <a class="nlink" href="03-materi.html">📚 Materi</a>
+    <a class="nlink here" href="04-simulasi.html">🔬 Simulasi</a>
+    <a class="nlink" href="05-latihan.html">🎮 Main</a>
+    <a class="nlink" href="06-developer.html">👤</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     HALAMAN SIMULASI INTERAKTIF
+     Input data bebas → lihat Mean/Median/Modus
+     berubah secara real-time + animasi grafik
+     ═══════════════════════════════════════ -->
+<div class="page">
+  <div class="pw">
+    <div class="ph">
+      <h2>🔬 Simulasi Interaktif</h2>
+      <p>Input angka bebasmu → tambah nilai ekstrem → lihat bagaimana Mean, Median & Modus berubah secara real-time!</p>
+    </div>
+
+    <!-- PANEL INPUT -->
+    <div class="sim-inp">
+      <div class="sim-section-title">
+        <div class="cdot"></div>📥 Input Data Kamu
+      </div>
+
+      <!-- Tombol preset -->
+      <div style="font-size:11px;color:var(--muted);margin-bottom:7px;font-weight:700;">⚡ Coba data contoh:</div>
+      <div class="presets">
+        <button class="pbtn" onclick="sPreset([70,75,80,72,74,68,76])">📝 Nilai Ujian</button>
+        <button class="pbtn" onclick="sPreset([10,12,11,13,12,12,11,13])">💰 Uang Jajan</button>
+        <button class="pbtn" onclick="sPreset([62,65,68,70,65,67,66,64])">📏 Tinggi Badan</button>
+        <button class="pbtn" onclick="sPreset([45,50,38,52,48,50,42])">🍜 Penjualan Mie</button>
+      </div>
+
+      <!-- Input + tombol tambah -->
+      <div class="inp-grp">
+        <input type="number" id="sInp"
+               placeholder="Ketik angka, lalu tekan Enter…"
+               onkeydown="if(event.key==='Enter')sAdd()">
+        <button class="btn-add" onclick="sAdd()">+</button>
+      </div>
+
+      <!-- Bola data -->
+      <div class="balls-row" id="sBalls">
+        <span style="font-size:13px;color:var(--muted)">Belum ada data — ketik angka di atas!</span>
+      </div>
+      <div class="bc" id="sCnt">0 / 15 data · klik bola untuk hapus</div>
+
+      <!-- Input nilai ekstrem -->
+      <div class="ext-box">
+        <span class="ext-lbl">⚡ Tambah Nilai Ekstrem</span>
+        <div class="ext-hint">
+          Coba masukkan angka yang jauh berbeda dari datamu.
+          Kalau data nilai ujian (60–80), coba masukkan <strong style="color:var(--orange)">5</strong> atau <strong style="color:var(--orange)">200</strong>.
+          Amati batang Mean yang bergerak paling dramatis!
+        </div>
+        <div class="ext-row">
+          <input type="number" id="sExtI"
+                 placeholder="Ketik nilai ekstrem bebas…"
+                 onkeydown="if(event.key==='Enter')sAddExt()">
+          <button class="btn-ext" onclick="sAddExt()">⚡</button>
+        </div>
+      </div>
+
+      <button class="sim-rst" onclick="sReset()">🔄 Reset Semua Data</button>
+    </div>
+
+    <!-- KARTU STATISTIK -->
+    <div class="sc3">
+      <div class="sc" id="sim-sc-m" style="--sc-c:var(--teal)">
+        <div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(0,229,204,.18),transparent 70%)"></div>
+        <div class="sc-lbl">📐 Mean</div>
+        <div class="sc-v" id="sMean" style="color:var(--teal)">—</div>
+        <div class="sc-d" id="sDMean"></div>
+      </div>
+      <div class="sc" id="sim-sc-me" style="--sc-c:var(--blue)">
+        <div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(77,166,255,.18),transparent 70%)"></div>
+        <div class="sc-lbl">📍 Median</div>
+        <div class="sc-v" id="sMed" style="color:var(--blue)">—</div>
+        <div class="sc-d" id="sDMed"></div>
+      </div>
+      <div class="sc" id="sim-sc-mo" style="--sc-c:var(--green)">
+        <div class="sglow" style="background:radial-gradient(ellipse at 50% 100%,rgba(6,214,160,.18),transparent 70%)"></div>
+        <div class="sc-lbl">🔁 Modus</div>
+        <div class="sc-v" id="sMod" style="color:var(--green)">—</div>
+        <div class="sc-d" id="sDMod"></div>
+      </div>
+    </div>
+
+    <!-- DIAGRAM BATANG -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-ttl">📊 Diagram Batang Animasi</div>
+        <div class="legs">
+          <div class="leg"><div class="ld" style="background:var(--teal)"></div>Mean</div>
+          <div class="leg"><div class="ld" style="background:var(--blue)"></div>Median</div>
+          <div class="leg"><div class="ld" style="background:var(--green)"></div>Modus</div>
+          <div class="leg"><div class="ld" style="background:none;border:1.5px dashed rgba(255,140,66,.5)"></div>Sebelum</div>
+        </div>
+      </div>
+      <div class="bars-area" id="sBars">
+        <div class="empty" style="position:absolute;width:100%;padding-top:50px">
+          Masukkan data untuk melihat diagram.
+        </div>
+      </div>
+    </div>
+
+    <!-- GARIS BILANGAN -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-ttl">📏 Garis Bilangan & Sebaran Data</div>
+        <div class="legs">
+          <div class="leg"><div class="ld" style="background:var(--teal);border-radius:50%"></div>Data</div>
+          <div class="leg"><div class="ld" style="background:var(--orange);border-radius:50%"></div>Ekstrem</div>
+        </div>
+      </div>
+      <div class="nl" id="sNL">
+        <div class="empty" style="padding-top:26px">Masukkan data untuk melihat sebaran.</div>
+      </div>
+    </div>
+
+    <!-- LANGKAH PERHITUNGAN -->
+    <div class="steps-card">
+      <div class="ctitle" style="--c-acc:var(--blue)">
+        <div class="cdot" style="background:var(--blue);box-shadow:0 0 6px var(--blue)"></div>
+        🧮 Langkah Perhitungan Otomatis
+      </div>
+      <div class="steps-in" id="sSteps">
+        <div class="empty">Masukkan data untuk melihat perhitungan.</div>
+      </div>
+    </div>
+
+    <!-- TABEL PERBANDINGAN -->
+    <div class="cmp" id="sCmp">
+      <div class="ctitle" style="--c-acc:var(--orange)">
+        <div class="cdot" style="background:var(--orange);box-shadow:0 0 6px var(--orange)"></div>
+        📋 Perbandingan Sebelum & Sesudah Nilai Ekstrem
+      </div>
+      <table class="ctbl">
+        <thead><tr><th>Ukuran</th><th>Sebelum</th><th>Sesudah</th><th>Selisih</th></tr></thead>
+        <tbody id="sCmpT"></tbody>
+      </table>
+    </div>
+
+    <!-- REFLEKSI -->
+    <div class="refl" id="sRefl">
+      <div style="font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">💭 Pertanyaan Reflektif</div>
+      <div class="refl-q">"Perhatikan diagram — mengapa batang Mean bergerak jauh lebih dramatis dibanding batang Median saat nilai ekstrem masuk?"</div>
+      <button class="refl-btn" onclick="toggleR('sR')">💡 Lihat Penjelasan</button>
+      <div class="refl-ans" id="sR">
+        Mean menjumlahkan semua nilai — satu angka besar langsung menambah total secara drastis, menarik mean ikut naik jauh.<br><br>
+        Median hanya bergantung pada posisi nilai tengah setelah diurutkan — tidak peduli seberapa besar nilai yang ada di ujung kiri atau kanan.<br><br>
+        Modus hanya menghitung frekuensi — masuknya satu nilai baru tidak otomatis mengubah nilai yang paling sering muncul.
+      </div>
+    </div>
+
+    <!-- KESIMPULAN -->
+    <div class="konk" id="sKonk">
+      <h3>🎯 Kamu Sudah Membuktikannya!</h3>
+      <p id="sKT"></p>
+    </div>
+
+    <a class="abtn-next" href="05-latihan.html">🎮 Lanjut ke Latihan & Game →</a>
+
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   SIMULASI — JavaScript
+   ════════════════════════════════════ */
+
+/* ── Partikel ledak ── */
+const pC = document.getElementById('particles');
+const pX = pC.getContext('2d');
+let pA = [];
+function resP(){ pC.width = innerWidth; pC.height = innerHeight; }
+resP(); window.addEventListener('resize', resP);
+function burst(x, y, col, n = 14) {
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 / n) * i + Math.random() * .5, s = 2 + Math.random() * 5;
+    pA.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s-2, r: 2+Math.random()*3, col, al: 1, dec: .025+Math.random()*.015 });
+  }
+}
+function animP() {
+  pX.clearRect(0, 0, pC.width, pC.height); pA = pA.filter(p => p.al > 0);
+  pA.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .12; p.al -= p.dec; pX.beginPath(); pX.arc(p.x, p.y, p.r, 0, Math.PI*2); pX.fillStyle = p.col + Math.floor(p.al*255).toString(16).padStart(2,'0'); pX.fill(); });
+  requestAnimationFrame(animP);
+}
+animP();
+
+/* ── Konfeti ── */
+const cC = document.getElementById('confettiC');
+const cX = cC.getContext('2d');
+let cA = [];
+function resC(){ cC.width = innerWidth; cC.height = innerHeight; }
+resC(); window.addEventListener('resize', resC);
+function confetti(n = 40) {
+  const cols = ['#00e5cc','#ff8c42','#ffd166','#4da6ff','#06d6a0','#c77dff'];
+  for (let i = 0; i < n; i++) cA.push({ x: Math.random()*cC.width, y: -10, vx: (Math.random()-.5)*4, vy: 3+Math.random()*4, r: 4+Math.random()*5, col: cols[Math.floor(Math.random()*cols.length)], rot: Math.random()*360, vr: (Math.random()-.5)*8, al: 1 });
+}
+function animC() {
+  cX.clearRect(0, 0, cC.width, cC.height); cA = cA.filter(p => p.al > 0);
+  cA.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; if(p.y > cC.height*.7) p.al -= .012; cX.save(); cX.translate(p.x, p.y); cX.rotate(p.rot*Math.PI/180); cX.globalAlpha = p.al; cX.fillStyle = p.col; cX.fillRect(-p.r, -p.r/2, p.r*2, p.r); cX.restore(); });
+  requestAnimationFrame(animC);
+}
+animC();
+
+/* ── Data state ── */
+let sData = [], sSnap = null, sOut = new Set();
+
+/* ── Kalkulasi ── */
+function calc(arr) {
+  if (!arr.length) return { mean: null, median: null, modus: null, sorted: [], freq: {} };
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mean = +(arr.reduce((s,v) => s+v, 0) / arr.length).toFixed(2);
+  const m = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0 ? +((sorted[m-1]+sorted[m])/2).toFixed(2) : sorted[m];
+  const freq = {}; arr.forEach(v => freq[v] = (freq[v]||0)+1);
+  const maxF = Math.max(...Object.values(freq));
+  const modi = maxF === 1 ? null : Object.keys(freq).filter(k => +freq[k] === maxF).map(Number).sort((a,b)=>a-b);
+  return { mean, median, modus: modi ? modi.join(', ') : '—', sorted, freq };
+}
+
+/* ── Update kartu statistik ── */
+function updSC(id, val, col, anim) {
+  const el = document.getElementById(id); if (!el) return;
+  const v = val != null ? val : '—';
+  if (anim && el.textContent !== String(v)) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 400); }
+  el.textContent = v; if (col) el.style.color = col;
+}
+function updD(id, b, a) {
+  const el = document.getElementById(id); if (!el) return;
+  if (typeof b === 'number' && typeof a === 'number') { const d = +(a-b).toFixed(2); el.textContent = (d>0?'▲ +':d<0?'▼ ':'')+d; el.style.color = d>0?'var(--orange)':d<0?'var(--blue)':'var(--muted)'; }
+  else el.textContent = '';
+}
+
+/* ── Render bola ── */
+function sRenderBalls() {
+  const s = calc(sData), c = document.getElementById('sBalls');
+  if (!sData.length) { c.innerHTML = '<span style="font-size:13px;color:var(--muted)">Belum ada data — ketik angka di atas!</span>'; return; }
+  c.innerHTML = sData.map((v,i) => { const isO = sOut.has(i), isM = v === s.median && !isO; return `<div class="dball ${isO?'de':isM?'dm':'dn'}" onclick="sRm(${i},event)"><div style="font-size:12px;font-family:monospace;font-weight:800">${v}</div></div>`; }).join('');
+  document.getElementById('sCnt').textContent = `${sData.length} / 15 data · klik bola untuk hapus`;
+}
+
+/* ── Render statistik ── */
+function sRenderStats(anim) {
+  const s = calc(sData);
+  updSC('sMean', s.mean, 'var(--teal)', anim);
+  updSC('sMed',  s.median, 'var(--blue)', anim);
+  updSC('sMod',  s.modus, 'var(--green)', anim);
+}
+
+/* ── Render langkah perhitungan ── */
+function sRenderSteps() {
+  const box = document.getElementById('sSteps'), s = calc(sData);
+  if (!sData.length) { box.innerHTML = '<div class="empty">Masukkan data untuk melihat perhitungan.</div>'; return; }
+  const sum = sData.reduce((a,b) => a+b, 0), n = sData.length, sorted = s.sorted, m = Math.floor(n/2);
+  const mStep = n%2===1 ? `posisi ke-${m+1} = <b>${sorted[m]}</b>` : `(${sorted[m-1]}+${sorted[m]})÷2 = <b>${s.median}</b>`;
+  const fStr = Object.entries(s.freq).sort((a,b) => b[1]-a[1]).slice(0,6).map(([v,f]) => `${v}→${f}x`).join('  ');
+  box.innerHTML = `<div class="sr">📌 Data: [${sData.join(', ')}]</div><div class="sr">📌 Urut: [${sorted.join(', ')}]</div><hr style="border:none;border-top:1px solid var(--border);margin:3px 0"><div class="sr">Σ = ${sum} · Mean = ${sum}÷${n} = <b>${s.mean}</b></div><hr style="border:none;border-top:1px solid var(--border);margin:3px 0"><div class="sr">Median → ${mStep}</div><hr style="border:none;border-top:1px solid var(--border);margin:3px 0"><div class="sr">Frekuensi: ${fStr}</div><div class="sr">Modus = <b>${s.modus}</b></div>`;
+}
+
+/* ── Render diagram batang ── */
+function sRenderBars() {
+  const area = document.getElementById('sBars'), s = calc(sData);
+  if (!sData.length || !s.mean) { area.innerHTML = '<div class="empty" style="position:absolute;width:100%;padding-top:50px">Masukkan data untuk melihat diagram.</div>'; return; }
+  const mN = s.modus !== '—' ? parseFloat(s.modus.split(', ')[0]) : null;
+  const vals = { mean: s.mean, median: s.median, ...(mN != null ? { modus: mN } : {}) };
+  const allN = Object.values(vals).filter(v => v != null);
+  if (sSnap) { if (sSnap.mean) allN.push(sSnap.mean); if (sSnap.median) allN.push(sSnap.median); }
+  const maxV = Math.max(...allN) * 1.18 || 100, H = 130;
+  const cfg = {
+    mean:   { lbl: 'Mean',   fc: 'bf-m',  sc: 'var(--teal)',  col: 'var(--teal)' },
+    median: { lbl: 'Median', fc: 'bf-me', sc: 'var(--blue)',  col: 'var(--blue)' },
+    modus:  { lbl: 'Modus',  fc: 'bf-mo', sc: 'var(--green)', col: 'var(--green)' }
+  };
+  let html = '';
+  Object.entries(cfg).forEach(([k, c]) => {
+    if (vals[k] == null) return;
+    const h = (vals[k] / maxV) * H;
+    let sEl = '';
+    if (sSnap && sSnap[k] != null && sSnap[k] !== '—') {
+      const sv = typeof sSnap[k] === 'number' ? sSnap[k] : parseFloat(sSnap[k]);
+      if (!isNaN(sv)) { const sh = (sv / maxV) * H; sEl = `<div class="bar-snp" style="height:${sh}px;border-color:${c.sc}"></div>`; }
+    }
+    html += `<div class="bg-g"><div class="bar-trk" style="height:${H}px"></div>${sEl}<div class="bar-fill ${c.fc}" style="height:${h}px"><span class="bv">${vals[k]}</span></div><div class="bx" style="color:${c.col}">${c.lbl}</div></div>`;
+  });
+  area.innerHTML = html;
+}
+
+/* ── Render garis bilangan ── */
+function sRenderNL() {
+  const area = document.getElementById('sNL'), s = calc(sData);
+  if (!sData.length) { area.innerHTML = '<div class="empty" style="padding-top:26px">Masukkan data untuk melihat sebaran.</div>'; return; }
+  const pad = 24, all = [...sData], minV = Math.min(...all), maxV = Math.max(...all), range = maxV - minV || 1;
+  const toP = v => pad + ((v - minV) / range) * (100 - pad * 2 / 8);
+  let html = '<div class="nll"></div>';
+  for (let i = 0; i <= 4; i++) { const v = minV + (range/4)*i, p = toP(v); html += `<div class="ntick" style="left:${p}%"></div><div class="ntlbl" style="left:${p}%">${Math.round(v)}</div>`; }
+  const stk = {};
+  sData.forEach((v, i) => { const k = Math.round(toP(v)*10); stk[k] = (stk[k]||0)+1; const off = (stk[k]-1)*15, isO = sOut.has(i); html += `<div class="ndot ${isO?'ne':'nd'}" style="left:${toP(v)}%;top:${46-off}px" title="${v}"></div>`; });
+  if (s.mean != null) { const mx = toP(s.mean); if (mx>=0&&mx<=100) html += `<div class="nmark" style="left:${mx}%;background:rgba(0,229,204,.5)"><div class="nml" style="background:rgba(0,229,204,.1);color:var(--teal);border-color:rgba(0,229,204,.4)">M̄=${s.mean}</div></div>`; }
+  if (s.median != null) { const mdx = toP(s.median); if (mdx>=0&&mdx<=100) html += `<div class="nmark" style="left:${mdx}%;background:rgba(77,166,255,.5);top:22px;height:30px"><div class="nml" style="background:rgba(77,166,255,.1);color:var(--blue);border-color:rgba(77,166,255,.4);top:22px">Med=${s.median}</div></div>`; }
+  area.innerHTML = html;
+}
+
+/* ── Render tabel perbandingan ── */
+function renderCmpTbl(tbodyId, snap, after) {
+  const body = document.getElementById(tbodyId); if (!body) return;
+  const keys = ['mean','median','modus'], labels = ['Mean','Median','Modus'];
+  let maxD = -1, maxI = -1;
+  keys.forEach((k,i) => { if (typeof snap[k]==='number' && typeof after[k]==='number') { const d = Math.abs(+(after[k]-snap[k]).toFixed(2)); if (d > maxD) { maxD = d; maxI = i; } } });
+  body.innerHTML = keys.map((k,i) => {
+    const b = snap[k], a = after[k]; let diff = '—', cls = '';
+    if (typeof b==='number' && typeof a==='number') { const d = +(a-b).toFixed(2); diff = (d>0?'+':'')+d; cls = d>0?'cup':d<0?'cdn':''; }
+    const badge = i===maxI && maxD>0 ? '<span class="cbadge">Paling berubah! ⚡</span>' : '';
+    return `<tr${i===maxI&&maxD>0?' class="crow"':''}><td><strong>${labels[i]}</strong>${badge}</td><td>${b==null?'—':b}</td><td>${a==null?'—':a}</td><td class="${cls}">${diff}</td></tr>`;
+  }).join('');
+}
+
+/* ── Render perbandingan + shot kartu ── */
+function sRenderCmp() {
+  const cmp = document.getElementById('sCmp');
+  if (!sSnap || !sData.length) { hide('sCmp'); return; }
+  show('sCmp');
+  const after = calc(sData); renderCmpTbl('sCmpT', sSnap, after);
+  const keys2 = ['mean','median','modus']; let maxD2 = -1, maxI2 = -1;
+  keys2.forEach((k,i) => { if (typeof sSnap[k]==='number' && typeof after[k]==='number') { const dd = Math.abs(+(after[k]-sSnap[k]).toFixed(2)); if (dd > maxD2) { maxD2 = dd; maxI2 = i; } } });
+  ['m','me','mo'].forEach((id,i) => { const sc = document.getElementById('sim-sc-'+id); if(sc) sc.classList.toggle('shot', i===maxI2 && maxD2>0); });
+  updD('sDMean', sSnap.mean, after.mean); updD('sDMed', sSnap.median, after.median);
+  show('sRefl');
+  if (maxI2 === 0 && maxD2 > 0) {
+    const mD = Math.abs(+(after.mean-sSnap.mean).toFixed(2));
+    const medD = typeof sSnap.median==='number' && typeof after.median==='number' ? Math.abs(+(after.median-sSnap.median).toFixed(2)) : 0;
+    document.getElementById('sKT').innerHTML = `Mean berubah <span class="ks" style="background:rgba(255,140,66,.15);border:1px solid var(--orange);color:var(--orange)">+${mD}</span> jauh lebih besar dari Median <span class="ks" style="background:rgba(77,166,255,.1);border:1px solid var(--blue);color:var(--blue)">+${medD}</span>, dan Modus tidak berubah. <strong style="color:var(--teal)">Terbukti: Mean paling sensitif terhadap nilai ekstrem!</strong>`;
+    show('sKonk'); confetti(28);
+  }
+}
+
+/* ── Render semua ── */
+function sAll(anim) { sRenderBalls(); sRenderStats(anim); sRenderSteps(); sRenderBars(); sRenderNL(); sRenderCmp(); }
+
+/* ── Tambah data ── */
+function sAdd() {
+  const inp = document.getElementById('sInp');
+  const v = parseFloat(inp.value); if (isNaN(v)) { inp.focus(); return; }
+  if (sData.length >= 15) { alert('Maksimal 15 data!'); return; }
+  sData.push(v); inp.value = ''; inp.focus();
+  const r = inp.getBoundingClientRect();
+  burst(r.left + r.width/2, r.top + r.height/2, '#00e5cc', 12);
+  sAll(true);
+}
+
+/* ── Tambah nilai ekstrem ── */
+function sAddExt() {
+  const inp = document.getElementById('sExtI');
+  const v = parseFloat(inp.value);
+  if (isNaN(v)) { inp.style.borderColor = 'var(--red)'; setTimeout(() => inp.style.borderColor = 'rgba(255,140,66,.4)', 700); return; }
+  if (sData.length < 3) { alert('Masukkan minimal 3 data dulu!'); return; }
+  if (sData.length >= 15) { alert('Maksimal 15 data!'); return; }
+  sSnap = calc(sData); sOut.add(sData.length); sData.push(v); inp.value = '';
+  burst(innerWidth/2, innerHeight/3, '#ff8c42', 30);
+  setTimeout(() => burst(innerWidth/2, innerHeight/2, '#ff8c42', 18), 180);
+  sAll(true);
+}
+
+/* ── Hapus satu bola ── */
+function sRm(i, e) {
+  const r = e.currentTarget.getBoundingClientRect();
+  burst(r.left + r.width/2, r.top + r.height/2, '#ff4d6d', 12);
+  sData.splice(i, 1);
+  const nO = new Set(); sOut.forEach(x => { if (x < i) nO.add(x); else if (x > i) nO.add(x-1); }); sOut = nO;
+  if (!sOut.size) {
+    sSnap = null; hide('sCmp'); hide('sRefl'); hide('sKonk');
+    ['sim-sc-m','sim-sc-me','sim-sc-mo'].forEach(id => { const sc = document.getElementById(id); if(sc) sc.classList.remove('shot'); });
+    ['sDMean','sDMed','sDMod'].forEach(id => { const e2 = document.getElementById(id); if(e2) e2.textContent = ''; });
+  }
+  sAll(false);
+}
+
+/* ── Reset ── */
+function sReset() {
+  sData = []; sSnap = null; sOut = new Set();
+  ['sMean','sMed','sMod'].forEach(id => updSC(id, null, null, false));
+  ['sDMean','sDMed','sDMod'].forEach(id => { const e2 = document.getElementById(id); if(e2) e2.textContent = ''; });
+  ['sim-sc-m','sim-sc-me','sim-sc-mo'].forEach(id => { const sc = document.getElementById(id); if(sc) sc.classList.remove('shot'); });
+  hide('sCmp'); hide('sRefl'); hide('sKonk'); sAll(false);
+}
+
+/* ── Preset ── */
+function sPreset(arr) {
+  sReset(); arr.forEach(v => { if (sData.length < 15) sData.push(v); });
+  burst(innerWidth/2, 200, '#00e5cc', 16); sAll(true);
+}
+
+/* ── Toggle refleksi ── */
+function toggleR(id) {
+  const a = document.getElementById(id), b = a.previousElementSibling; if (!a) return;
+  const s = a.classList.toggle('show');
+  if (b && b.classList.contains('refl-btn')) b.textContent = s ? '🙈 Sembunyikan' : '💡 Lihat Penjelasan';
+}
+
+/* ── Show / hide helper ── */
+function show(id) { const e = document.getElementById(id); if (e) { e.classList.add('show'); if (e.style.display === 'none') e.style.display = 'block'; } }
+function hide(id) { const e = document.getElementById(id); if (e) { e.classList.remove('show'); if (e.classList.contains('cmp')||e.classList.contains('refl')||e.classList.contains('konk')) e.style.display = 'none'; } }
+</script>
+</body>
+</html>

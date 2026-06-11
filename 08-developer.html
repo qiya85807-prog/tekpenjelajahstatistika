@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jelajah Statistika — Profil Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   DEVELOPER PAGE — CSS
+   Tema: ungu, pink, biru cosmic (selaras Beranda)
+   ══════════════════════════════════════════ */
+:root{
+  --bg:#1b1024;
+  --card:#2b1633;
+  --card2:#3a1f45;
+  --border:rgba(217,163,255,.14);
+
+  --teal:#ff66c4;
+  --orange:#ff9f68;
+  --yellow:#ffd166;
+  --blue:#8ec5ff;
+  --green:#72f1b8;
+  --purple:#d9a3ff;
+
+  --text:#ffeefe;
+  --muted:#b68bbf;
+  --white:#fff7ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Nunito Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Ambient glow latar ── */
+body::before{
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 55% 40% at 15% 20%,rgba(255,102,196,.05),transparent 60%),
+    radial-gradient(ellipse 45% 35% at 85% 65%,rgba(142,197,255,.05),transparent 60%),
+    radial-gradient(ellipse 35% 50% at 50% 95%,rgba(217,163,255,.04),transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── Navigasi ── */
+nav{
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  background:rgba(6,14,26,.96); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border); height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px;
+}
+.logo{
+  font-family:'Fredoka One',sans-serif; font-size:22px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.logo span{
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.nav-links{ display:flex; gap:4px; }
+.nlink{
+  padding:5px 10px; border-radius:8px; border:none;
+  background:none; color:var(--muted); font-size:11px; font-weight:800;
+  cursor:pointer; font-family:inherit; transition:all .2s;
+  text-decoration:none; display:flex; align-items:center; gap:3px;
+}
+.nlink:hover{ color:var(--teal); background:rgba(255,102,196,.08); }
+.nlink.here{ color:var(--purple); background:rgba(217,163,255,.1); }
+
+/* ── Layout utama ── */
+.page{ padding-top:56px; position:relative; z-index:1; }
+
+/* ═══════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════ */
+.hero{
+  position:relative; overflow:hidden;
+  padding:60px 20px 50px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Dekorasi latar hero */
+.hero-deco{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.hdeco-ring{
+  position:absolute; border-radius:50%; border:1px solid rgba(217,163,255,.1);
+  animation:ringPulse 6s ease-in-out infinite;
+}
+.hdeco-ring:nth-child(1){ width:400px;height:400px;top:-100px;right:-80px; animation-delay:0s; }
+.hdeco-ring:nth-child(2){ width:280px;height:280px;top:-30px;right:-10px; animation-delay:1.5s; border-color:rgba(142,197,255,.1); }
+.hdeco-ring:nth-child(3){ width:500px;height:500px;bottom:-200px;left:-150px; animation-delay:3s; border-color:rgba(255,102,196,.07); }
+@keyframes ringPulse{
+  0%,100%{ transform:scale(1); opacity:.6; }
+  50%{ transform:scale(1.04); opacity:1; }
+}
+
+/* Simbol matematika melayang */
+.math-float{ position:absolute; font-family:'Fredoka One',sans-serif; pointer-events:none; }
+.mf1{ top:14%; left:4%;  font-size:28px; color:var(--teal);   opacity:.12; animation:mfloat 9s ease-in-out infinite; }
+.mf2{ top:22%; right:5%; font-size:22px; color:var(--blue);   opacity:.12; animation:mfloat 11s ease-in-out infinite .8s; }
+.mf3{ bottom:18%; left:6%; font-size:20px; color:var(--purple); opacity:.12; animation:mfloat 8s ease-in-out infinite 2s; }
+.mf4{ bottom:24%; right:4%; font-size:24px; color:var(--yellow); opacity:.12; animation:mfloat 10s ease-in-out infinite 1.2s; }
+.mf5{ top:50%; left:2%;  font-size:18px; color:var(--green);  opacity:.10; animation:mfloat 12s ease-in-out infinite 3s; }
+@keyframes mfloat{
+  0%,100%{ transform:translateY(0) rotate(0deg); }
+  33%{ transform:translateY(-16px) rotate(5deg); }
+  66%{ transform:translateY(10px) rotate(-4deg); }
+}
+
+/* Kartu profil hero */
+.hero-card{
+  position:relative; z-index:2;
+  background:rgba(43,22,51,.7);
+  border:1px solid rgba(217,163,255,.2);
+  border-radius:28px;
+  padding:36px 32px;
+  max-width:680px; width:100%;
+  backdrop-filter:blur(20px);
+  box-shadow:0 24px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.03);
+  animation:heroIn .7s ease both;
+}
+.hero-card::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  border-radius:28px 28px 0 0;
+  background:linear-gradient(90deg,#ff66c4,#d9a3ff,#8ec5ff,#ffd166,#72f1b8);
+}
+@keyframes heroIn{ from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+
+.hero-inner{
+  display:flex; gap:28px; align-items:flex-start;
+}
+@media(max-width:540px){
+  .hero-inner{ flex-direction:column; align-items:center; text-align:center; }
+}
+
+/* Foto profil */
+.avatar-wrap{
+  flex-shrink:0; position:relative;
+}
+.avatar{
+  width:120px; height:120px; border-radius:50%;
+  border:3px solid rgba(217,163,255,.35);
+  object-fit:cover; display:block;
+  box-shadow:0 8px 28px rgba(217,163,255,.25);
+  background:linear-gradient(135deg,#3a1f45,#261535);
+  overflow:hidden;
+}
+.avatar-placeholder{
+  width:120px; height:120px; border-radius:50%;
+  border:3px solid rgba(217,163,255,.35);
+  background:linear-gradient(135deg,#3a1f45 0%,#1e1030 100%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:48px;
+  box-shadow:0 8px 28px rgba(217,163,255,.2);
+  flex-shrink:0;
+}
+.avatar-badge{
+  position:absolute; bottom:4px; right:4px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  color:#1b1024; font-size:14px; width:26px; height:26px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  border:2px solid var(--bg);
+  box-shadow:0 3px 10px rgba(217,163,255,.4);
+}
+
+/* Info teks hero */
+.hero-info{ flex:1; min-width:0; }
+.hero-role{
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(217,163,255,.1); border:1px solid rgba(217,163,255,.2);
+  color:var(--purple); padding:3px 11px; border-radius:100px;
+  font-size:10px; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; margin-bottom:10px;
+}
+.hero-name{
+  font-family:'Fredoka One',sans-serif;
+  font-size:clamp(26px,5vw,36px); line-height:1.1;
+  background:linear-gradient(135deg,var(--white),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:4px;
+}
+.hero-nim{
+  font-size:12px; color:var(--muted); font-weight:700;
+  letter-spacing:.06em; margin-bottom:14px;
+}
+
+/* Chips info */
+.chip-row{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
+.chip{
+  display:flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  border-radius:8px; padding:5px 10px;
+  font-size:11px; color:var(--text); font-weight:600; line-height:1.3;
+}
+.chip-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+/* Bio teks */
+.hero-bio{
+  font-size:12.5px; color:var(--muted); line-height:1.7;
+  border-top:1px solid rgba(255,255,255,.07); padding-top:14px;
+}
+
+/* Sosmed tombol */
+.sosmed-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.sosmed-btn{
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  color:var(--text); border-radius:9px; padding:7px 13px;
+  font-size:12px; font-weight:700; cursor:pointer;
+  transition:all .2s; text-decoration:none;
+}
+.sosmed-btn:hover{
+  background:rgba(217,163,255,.12);
+  border-color:rgba(217,163,255,.3);
+  transform:translateY(-2px);
+}
+
+/* ═══════════════════════════════════
+   KONTEN UTAMA
+   ═══════════════════════════════════ */
+.main-content{
+  max-width:900px; margin:0 auto;
+  padding:0 20px 60px;
+}
+
+/* Judul seksi */
+.section-head{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:18px; margin-top:40px;
+}
+.section-head-line{
+  flex:1; height:1px;
+  background:linear-gradient(90deg,rgba(217,163,255,.25),transparent);
+}
+.section-label{
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:11px;
+  text-transform:uppercase; letter-spacing:.1em;
+  padding:4px 14px; border-radius:100px;
+  border:1px solid;
+}
+.sl-purple{ color:var(--purple); border-color:rgba(217,163,255,.3); background:rgba(217,163,255,.07); }
+.sl-blue  { color:var(--blue);   border-color:rgba(142,197,255,.3); background:rgba(142,197,255,.07); }
+.sl-teal  { color:var(--teal);   border-color:rgba(255,102,196,.3); background:rgba(255,102,196,.07); }
+.sl-yellow{ color:var(--yellow); border-color:rgba(255,209,102,.3); background:rgba(255,209,102,.07); }
+.sl-green { color:var(--green);  border-color:rgba(114,241,184,.3); background:rgba(114,241,184,.07); }
+
+/* ── Kartu glassmorphism generik ── */
+.glass-card{
+  background:rgba(43,22,51,.6);
+  border:1px solid var(--border);
+  border-radius:20px;
+  backdrop-filter:blur(12px);
+  overflow:hidden;
+  position:relative;
+}
+.glass-card::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+
+/* ── Tentang Media ── */
+.about-grid{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+@media(max-width:560px){ .about-grid{ grid-template-columns:1fr; } }
+
+.about-card{
+  background:rgba(43,22,51,.6);
+  border:1px solid var(--border);
+  border-radius:16px; padding:18px 16px;
+  transition:border-color .2s, transform .2s;
+}
+.about-card:hover{
+  border-color:rgba(217,163,255,.3);
+  transform:translateY(-3px);
+}
+.about-card-icon{ font-size:28px; margin-bottom:8px; }
+.about-card-title{
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  color:var(--white); margin-bottom:5px;
+}
+.about-card-desc{ font-size:12px; color:var(--muted); line-height:1.6; }
+
+/* ── Materi Tags ── */
+.materi-list{ display:flex; flex-wrap:wrap; gap:8px; padding:18px; }
+.materi-tag{
+  display:flex; align-items:center; gap:6px;
+  padding:8px 14px; border-radius:10px; font-size:13px;
+  font-weight:800; font-family:'Nunito',sans-serif;
+  border:1px solid;
+}
+.mt-mean  { color:var(--teal);   background:rgba(255,102,196,.08);  border-color:rgba(255,102,196,.25);  }
+.mt-median{ color:var(--blue);   background:rgba(142,197,255,.08);  border-color:rgba(142,197,255,.25);  }
+.mt-modus { color:var(--yellow); background:rgba(255,209,102,.08);  border-color:rgba(255,209,102,.25);  }
+
+/* ── Tujuan Pengembangan ── */
+.tujuan-list{ padding:18px; display:flex; flex-direction:column; gap:10px; }
+.tujuan-item{
+  display:flex; gap:12px; align-items:flex-start;
+  background:rgba(255,255,255,.03); border-radius:12px; padding:12px 14px;
+  border:1px solid rgba(255,255,255,.05);
+  transition:background .2s, border-color .2s;
+}
+.tujuan-item:hover{ background:rgba(217,163,255,.06); border-color:rgba(217,163,255,.15); }
+.tujuan-num{
+  min-width:28px; height:28px; border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Fredoka One',sans-serif; font-size:13px; color:#1b1024;
+  flex-shrink:0; margin-top:1px;
+}
+.tujuan-text{ font-size:13px; color:var(--text); line-height:1.6; }
+
+/* ── Fitur Grid ── */
+.fitur-grid{
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+@media(min-width:640px){ .fitur-grid{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:420px){ .fitur-grid{ grid-template-columns:1fr; } }
+
+.fitur-card{
+  background:rgba(43,22,51,.6);
+  border:1px solid var(--border);
+  border-radius:16px; padding:16px 14px;
+  transition:all .22s; position:relative; overflow:hidden;
+}
+.fitur-card::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,var(--fc,var(--purple)) 0%,transparent 65%);
+  opacity:0; transition:opacity .3s;
+}
+.fitur-card:hover{ transform:translateY(-4px); border-color:var(--fc,var(--purple)); box-shadow:0 10px 30px rgba(0,0,0,.3); }
+.fitur-card:hover::after{ opacity:.06; }
+.fitur-icon{ font-size:26px; margin-bottom:8px; }
+.fitur-title{ font-family:'Nunito',sans-serif; font-weight:900; font-size:13px; color:var(--white); margin-bottom:4px; }
+.fitur-desc{ font-size:11px; color:var(--muted); line-height:1.5; }
+
+/* ── Teknologi ── */
+.tech-grid{
+  display:flex; flex-wrap:wrap; gap:9px; padding:18px;
+}
+.tech-chip{
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  border-radius:9px; padding:7px 13px;
+  font-size:12px; font-weight:700; color:var(--text);
+  transition:all .2s;
+}
+.tech-chip:hover{ background:rgba(142,197,255,.1); border-color:rgba(142,197,255,.3); transform:translateY(-2px); }
+.tech-dot{ width:7px; height:7px; border-radius:50%; }
+
+/* ── Info Media ── */
+.info-grid{
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:rgba(255,255,255,.06);
+  border-radius:16px; overflow:hidden;
+}
+@media(max-width:460px){ .info-grid{ grid-template-columns:1fr; } }
+
+.info-cell{
+  background:rgba(43,22,51,.7);
+  padding:14px 16px;
+}
+.info-label{ font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.09em; margin-bottom:4px; }
+.info-value{ font-size:13px; font-weight:700; color:var(--text); }
+
+/* ── Quote / Pesan ── */
+.quote-card{
+  background:linear-gradient(135deg,rgba(217,163,255,.08),rgba(142,197,255,.05));
+  border:1px solid rgba(217,163,255,.2);
+  border-radius:20px; padding:28px 28px 24px;
+  text-align:center; position:relative; overflow:hidden;
+  margin-top:40px;
+}
+.quote-card::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,var(--teal),var(--purple),var(--blue));
+}
+.quote-mark{
+  font-family:'Fredoka One',sans-serif;
+  font-size:64px; line-height:.6;
+  color:var(--purple); opacity:.3;
+  margin-bottom:8px; display:block;
+}
+.quote-text{
+  font-size:14px; line-height:1.75; color:var(--text);
+  font-style:italic; max-width:520px; margin:0 auto 16px;
+}
+.quote-author{
+  font-family:'Nunito',sans-serif; font-weight:800;
+  font-size:12px; color:var(--purple);
+  letter-spacing:.05em;
+}
+
+/* ── Footer mini ── */
+.dev-footer{
+  text-align:center; padding:20px;
+  font-size:11px; color:var(--muted);
+  border-top:1px solid var(--border);
+}
+.dev-footer span{
+  background:linear-gradient(135deg,var(--teal),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  font-weight:800;
+}
+
+/* ── Animasi masuk kartu ── */
+.reveal{
+  opacity:0; transform:translateY(22px);
+  transition:opacity .55s ease, transform .55s ease;
+}
+.reveal.visible{ opacity:1; transform:none; }
+
+/* ── Diagram mini dekoratif ── */
+.deco-bars{
+  display:flex; align-items:flex-end; gap:4px; height:48px;
+  opacity:.45;
+}
+.dbar{
+  width:10px; border-radius:4px 4px 0 0;
+  animation:barBounce 2.5s ease-in-out infinite;
+}
+.dbar:nth-child(1){ height:60%; background:var(--teal);   animation-delay:0s;    }
+.dbar:nth-child(2){ height:90%; background:var(--purple); animation-delay:.15s;  }
+.dbar:nth-child(3){ height:45%; background:var(--blue);   animation-delay:.3s;   }
+.dbar:nth-child(4){ height:75%; background:var(--yellow); animation-delay:.45s;  }
+.dbar:nth-child(5){ height:55%; background:var(--green);  animation-delay:.6s;   }
+@keyframes barBounce{
+  0%,100%{ transform:scaleY(1); }
+  50%{ transform:scaleY(1.12); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="logo">Jelajah<span>Statistika</span></div>
+  <div class="nav-links">
+    <a class="nlink" href="01-beranda.html">🏠 Beranda</a>
+    <a class="nlink" href="02-pretest.html">📝 Pretest</a>
+    <a class="nlink" href="03-cerita.html">📖 Cerita</a>
+    <a class="nlink" href="04-materi.html">📚 Materi</a>
+    <a class="nlink" href="05-simulasi.html">🔬 Simulasi</a>
+    <a class="nlink" href="06-latihan.html">🎮 Latihan</a>
+    <a class="nlink" href="07-posttest.html">📝 Posttest</a>
+    <a class="nlink here" href="08-developer.html">👤 Profil</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ════════════════════
+       HERO — PROFIL CARD
+       ════════════════════ -->
+  <div class="hero">
+    <div class="hero-deco">
+      <div class="hdeco-ring"></div>
+      <div class="hdeco-ring"></div>
+      <div class="hdeco-ring"></div>
+    </div>
+    <!-- Simbol matematika melayang -->
+    <div class="math-float mf1">x̄</div>
+    <div class="math-float mf2">∑</div>
+    <div class="math-float mf3">Mo</div>
+    <div class="math-float mf4">Md</div>
+    <div class="math-float mf5">μ</div>
+
+    <div class="hero-card">
+      <div class="hero-inner">
+
+        <!-- Foto / Avatar -->
+        <div class="avatar-wrap">
+          <!-- Ganti src di bawah dengan nama file foto Anda, misal: foto_sendiri.jpeg -->
+          <img
+            src="foto_sendiri.jpeg"
+            alt="Foto Barrotut Taqiyah"
+            class="avatar"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          >
+          <div class="avatar-placeholder" style="display:none;">👩‍🎓</div>
+          <div class="avatar-badge">⭐</div>
+        </div>
+
+        <!-- Info Teks -->
+        <div class="hero-info">
+          <div class="hero-role">👤 Pengembang Media</div>
+          <div class="hero-name">Barrotut Taqiyah</div>
+          <div class="hero-nim">NIM · 241001015</div>
+
+          <div class="chip-row">
+            <div class="chip">
+              <div class="chip-dot" style="background:var(--purple)"></div>
+              Pendidikan Matematika
+            </div>
+            <div class="chip">
+              <div class="chip-dot" style="background:var(--blue)"></div>
+              Teknologi Pendidikan
+            </div>
+          </div>
+
+          <div class="hero-bio">
+            Mahasiswi Program Studi Pendidikan Matematika yang mengembangkan media pembelajaran interaktif <strong style="color:var(--purple)">Jelajah Statistika</strong> sebagai inovasi pembelajaran matematika berbasis teknologi — dirancang agar statistika terasa mudah, menarik, dan menyenangkan.
+          </div>
+
+          <div class="sosmed-row">
+            <a class="sosmed-btn" href="https://instagram.com/barrotut_taqi" target="_blank">
+              📸 @barrotut_taqi
+            </a>
+            <a class="sosmed-btn" href="https://tiktok.com/@taurus_abis" target="_blank">
+              🎵 @taurus_abis
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       KONTEN UTAMA
+       ════════════════════════ -->
+  <div class="main-content">
+
+    <!-- ── Tentang Media ── -->
+    <div class="section-head reveal">
+      <div class="section-label sl-blue">📚 Tentang Jelajah Statistika</div>
+      <div class="section-head-line"></div>
+      <div class="deco-bars">
+        <div class="dbar"></div><div class="dbar"></div><div class="dbar"></div>
+        <div class="dbar"></div><div class="dbar"></div>
+      </div>
+    </div>
+
+    <div class="about-grid reveal">
+      <div class="about-card">
+        <div class="about-card-icon">🌐</div>
+        <div class="about-card-title">Media Berbasis Web</div>
+        <div class="about-card-desc">Dirancang untuk peserta didik SMP yang dapat diakses dari browser tanpa instalasi apapun.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">📊</div>
+        <div class="about-card-title">Fokus Ukuran Pemusatan</div>
+        <div class="about-card-desc">Khusus membahas materi statistika kelas VII: Mean, Median, dan Modus secara mendalam.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🎮</div>
+        <div class="about-card-title">Belajar Aktif & Mandiri</div>
+        <div class="about-card-desc">Menggabungkan cerita, simulasi, latihan soal, dan evaluasi untuk pengalaman belajar yang lengkap.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">📱</div>
+        <div class="about-card-title">Responsif & Interaktif</div>
+        <div class="about-card-desc">Tampil sempurna di laptop maupun smartphone, dilengkapi animasi dan interaksi langsung.</div>
+      </div>
+    </div>
+
+    <!-- Materi tags -->
+    <div class="glass-card reveal" style="margin-top:14px;">
+      <div class="materi-list">
+        <div class="materi-tag mt-mean">  📐 Mean · Rata-rata</div>
+        <div class="materi-tag mt-median">📏 Median · Nilai Tengah</div>
+        <div class="materi-tag mt-modus"> 🔢 Modus · Nilai Terbanyak</div>
+      </div>
+    </div>
+
+    <!-- ── Tujuan Pengembangan ── -->
+    <div class="section-head reveal">
+      <div class="section-label sl-purple">🎯 Tujuan Pengembangan</div>
+      <div class="section-head-line"></div>
+    </div>
+
+    <div class="glass-card reveal">
+      <div class="tujuan-list">
+        <div class="tujuan-item">
+          <div class="tujuan-num">1</div>
+          <div class="tujuan-text">Membantu peserta didik memahami konsep <strong>mean, median, dan modus</strong> dengan lebih mudah dan menyenangkan.</div>
+        </div>
+        <div class="tujuan-item">
+          <div class="tujuan-num">2</div>
+          <div class="tujuan-text">Menyajikan pembelajaran statistika yang <strong>menarik dan interaktif</strong> melalui pendekatan berbasis teknologi.</div>
+        </div>
+        <div class="tujuan-item">
+          <div class="tujuan-num">3</div>
+          <div class="tujuan-text">Meningkatkan <strong>motivasi belajar matematika</strong> melalui media digital yang ramah dan modern.</div>
+        </div>
+        <div class="tujuan-item">
+          <div class="tujuan-num">4</div>
+          <div class="tujuan-text">Membantu peserta didik menerapkan konsep statistika dalam <strong>konteks kehidupan sehari-hari</strong>.</div>
+        </div>
+        <div class="tujuan-item">
+          <div class="tujuan-num">5</div>
+          <div class="tujuan-text">Mendukung implementasi <strong>Kurikulum Merdeka</strong> pada pembelajaran matematika SMP kelas VII.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Fitur Utama ── -->
+    <div class="section-head reveal">
+      <div class="section-label sl-teal">✨ Fitur Utama</div>
+      <div class="section-head-line"></div>
+    </div>
+
+    <div class="fitur-grid reveal">
+      <div class="fitur-card" style="--fc:var(--teal)">
+        <div class="fitur-icon">🏠</div>
+        <div class="fitur-title">Beranda</div>
+        <div class="fitur-desc">Informasi umum, tujuan pembelajaran, dan petunjuk penggunaan media.</div>
+      </div>
+      <div class="fitur-card" style="--fc:var(--orange)">
+        <div class="fitur-icon">📖</div>
+        <div class="fitur-title">Cerita Kontekstual</div>
+        <div class="fitur-desc">Permasalahan sehari-hari yang mengaitkan statistika dengan kehidupan nyata.</div>
+      </div>
+      <div class="fitur-card" style="--fc:var(--blue)">
+        <div class="fitur-icon">📚</div>
+        <div class="fitur-title">Materi</div>
+        <div class="fitur-desc">Penjelasan konsep mean, median, dan modus secara sistematis dan lengkap.</div>
+      </div>
+      <div class="fitur-card" style="--fc:var(--green)">
+        <div class="fitur-icon">🔬</div>
+        <div class="fitur-title">Simulasi Interaktif</div>
+        <div class="fitur-desc">Percobaan data langsung untuk memahami perubahan nilai statistik secara visual.</div>
+      </div>
+      <div class="fitur-card" style="--fc:var(--yellow)">
+        <div class="fitur-icon">🎮</div>
+        <div class="fitur-title">Latihan Soal</div>
+        <div class="fitur-desc">Kuis dan game seru untuk menguji pemahaman setelah mempelajari materi.</div>
+      </div>
+      <div class="fitur-card" style="--fc:var(--purple)">
+        <div class="fitur-icon">📝</div>
+        <div class="fitur-title">Pretest & Posttest</div>
+        <div class="fitur-desc">Evaluasi awal dan akhir untuk mengukur peningkatan penguasaan materi.</div>
+      </div>
+    </div>
+
+    <!-- ── Teknologi ── -->
+    <div class="section-head reveal">
+      <div class="section-label sl-green">🛠️ Teknologi yang Digunakan</div>
+      <div class="section-head-line"></div>
+    </div>
+
+    <div class="glass-card reveal">
+      <div class="tech-grid">
+        <div class="tech-chip"><div class="tech-dot" style="background:#e34c26"></div>HTML5</div>
+        <div class="tech-chip"><div class="tech-dot" style="background:#264de4"></div>CSS3</div>
+        <div class="tech-chip"><div class="tech-dot" style="background:#f0db4f"></div>JavaScript</div>
+        <div class="tech-chip"><div class="tech-dot" style="background:var(--green)"></div>Local Storage</div>
+        <div class="tech-chip"><div class="tech-dot" style="background:var(--blue)"></div>Responsive Web Design</div>
+        <div class="tech-chip"><div class="tech-dot" style="background:var(--purple)"></div>Google Fonts</div>
+      </div>
+    </div>
+
+    <!-- ── Informasi Media ── -->
+    <div class="section-head reveal">
+      <div class="section-label sl-yellow">📋 Informasi Media</div>
+      <div class="section-head-line"></div>
+    </div>
+
+    <div class="glass-card reveal">
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="info-label">Nama Media</div>
+          <div class="info-value">Jelajah Statistika</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Materi</div>
+          <div class="info-value">Mean, Median, dan Modus</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Mata Pelajaran</div>
+          <div class="info-value">Matematika</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Jenjang</div>
+          <div class="info-value">SMP Kelas VII</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Kurikulum</div>
+          <div class="info-value">Kurikulum Merdeka</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Tahun Pengembangan</div>
+          <div class="info-value">2026</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Versi</div>
+          <div class="info-value">1.0</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Platform</div>
+          <div class="info-value">Web Browser</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Quote / Pesan Pengembang ── -->
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <p class="quote-text">
+        Jelajah Statistika dikembangkan untuk membantu peserta didik belajar statistika dengan cara yang lebih menarik, interaktif, dan mudah dipahami sehingga pembelajaran matematika menjadi lebih menyenangkan.
+      </p>
+      <div class="quote-author">— Barrotut Taqiyah, Pengembang Media</div>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- Footer -->
+  <div class="dev-footer">
+    <span>Jelajah Statistika</span> · Dikembangkan dengan ❤️ oleh Barrotut Taqiyah · 2026
+  </div>
+
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════
+   Scroll reveal animasi masuk
+   ═══════════════════════════ */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((en, i) => {
+    if(en.isIntersecting){
+      // stagger ringan antar elemen sekelompok
+      setTimeout(() => en.target.classList.add('visible'), i * 60);
+      io.unobserve(en.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin:'0px 0px -30px 0px' });
+revealEls.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
